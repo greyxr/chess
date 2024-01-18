@@ -7,9 +7,15 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    public ChessPosition[][] board = new ChessPosition[8][8];
+    public int boardDim = 8;
+    public ChessPiece[][] board = new ChessPiece[boardDim][boardDim];
     public ChessBoard() {
-        
+        for (int i = 0; i < this.boardDim; i++) {
+            for (int j = 0; j < this.boardDim; j++) {
+                // Set board to null
+                board[i][j] = null;
+            }
+        }
     }
 
     /**
@@ -19,7 +25,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        throw new RuntimeException("Not implemented");
+        this.board[position.row][position.col] = piece;
     }
 
     /**
@@ -30,7 +36,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        throw new RuntimeException("Not implemented");
+        return this.board[position.row][position.col];
     }
 
     /**
