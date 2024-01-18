@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -11,8 +12,8 @@ import java.util.Collection;
 public class ChessPiece {
 
     public ChessGame.TeamColor pieceColor;
-    public ChessPiece.PieceType type;
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public PieceType type;
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
     }
@@ -51,46 +52,125 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        ArrayList<ChessMove> chessMoveArrayList = new ArrayList<>();
         return switch (this.getPieceType()) {
-            case KING -> kingMoves(board, myPosition);
-            case QUEEN -> queenMoves(board, myPosition);
-            case BISHOP -> bishopMoves(board, myPosition);
-            case KNIGHT -> knightMoves(board, myPosition);
-            case ROOK -> rookMoves(board, myPosition);
-            case PAWN -> pawnMoves(board, myPosition);
+            case KING -> kingMoves(board, myPosition, chessMoveArrayList);
+            case QUEEN -> queenMoves(board, myPosition, chessMoveArrayList);
+            case BISHOP -> bishopMoves(board, myPosition, chessMoveArrayList);
+            case KNIGHT -> knightMoves(board, myPosition, chessMoveArrayList);
+            case ROOK -> rookMoves(board, myPosition, chessMoveArrayList);
+            case PAWN -> pawnMoves(board, myPosition, chessMoveArrayList);
         };
     }
 
-    private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
         return null;
     }
 
-    private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
         return null;
     }
 
-    private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
         return null;
     }
 
-    private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
         return null;
     }
 
-    private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
         return null;
     }
 
-    private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
         return null;
     }
 
-    private Collection<ChessMove> checkDiagonal(ChessBoard board, ChessPosition myPosition, String direction, int range) {
+    private Collection<ChessMove> checkDiagonal(ChessBoard board, ChessPosition myPosition, int range, ArrayList<ChessMove> chessMoveArrayList, ChessPiece.PieceType promotionPiece) {
         return null;
     }
 
-    private Collection<ChessMove> checkStraight(ChessBoard board, ChessPosition myPosition, String direction, int range) {
-        return null;
+    private Collection<ChessMove> checkStraight(ChessBoard board, ChessPosition myPosition, int range, ArrayList<ChessMove> chessMoveArrayList, ChessPiece.PieceType promotionPiece) {
+        int row = myPosition.row;
+        int col = myPosition.col;
+        // Check north
+        boolean isCapture = false;
+        for (int i = 0; i < range; i++) {
+            int newRow = row + i;
+            if (newRow < board.boardDim) {
+                if (isCapture) {
+                    break;
+                }
+                // First time a piece is encountered, if it's the enemy set isCapture flag.
+                ChessPiece potentialCapture = board.getPiece(new ChessPosition(newRow, col));
+                if (potentialCapture != null) {
+                    isCapture = true;
+                    // If the piece is our team, break out of the loop without adding it as a valid move.
+                    if (potentialCapture.getTeamColor() == this.getTeamColor()) break;
+                }
+                chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(newRow, col), promotionPiece));
+            }
+        }
+
+        // South
+        isCapture = false;
+        for (int i = 0; i < range; i++) {
+            int newRow = row - i;
+            if (newRow >= 0) {
+                if (isCapture) {
+                    break;
+                }
+                // First time a piece is encountered, if it's the enemy set isCapture flag.
+                ChessPiece potentialCapture = board.getPiece(new ChessPosition(newRow, col));
+                if (potentialCapture != null) {
+                    isCapture = true;
+                    // If the piece is our team, break out of the loop without adding it as a valid move.
+                    if (potentialCapture.getTeamColor() == this.getTeamColor()) break;
+                }
+                chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(newRow, col), promotionPiece));
+            }
+        }
+
+        // East
+        isCapture = false;
+        for (int j = 0; j < range; j++) {
+            int newCol = col + j;
+            if (newCol < board.boardDim) {
+                if (isCapture) {
+                    break;
+                }
+                // First time a piece is encountered, if it's the enemy set isCapture flag.
+                ChessPiece potentialCapture = board.getPiece(new ChessPosition(row, newCol));
+                if (potentialCapture != null) {
+                    isCapture = true;
+                    // If the piece is our team, break out of the loop without adding it as a valid move.
+                    if (potentialCapture.getTeamColor() == this.getTeamColor()) break;
+                }
+                chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row, newCol), promotionPiece));
+            }
+        }
+
+        // West
+        isCapture = false;
+        for (int j = 0; j < range; j++) {
+            int newCol = col - j;
+            if (newCol >= 0) {
+                if (isCapture) {
+                    break;
+                }
+                // First time a piece is encountered, if it's the enemy set isCapture flag.
+                ChessPiece potentialCapture = board.getPiece(new ChessPosition(row, newCol));
+                if (potentialCapture != null) {
+                    isCapture = true;
+                    // If the piece is our team, break out of the loop without adding it as a valid move.
+                    if (potentialCapture.getTeamColor() == this.getTeamColor()) break;
+                }
+                chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row, newCol), promotionPiece));
+            }
+        }
+
+        return chessMoveArrayList;
     }
 
 }
