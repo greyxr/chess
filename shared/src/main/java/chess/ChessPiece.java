@@ -87,7 +87,9 @@ public class ChessPiece {
     }
 
     private Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
-        return null;
+        Collection<ChessMove> kingMoveArray = checkDiagonal(board, myPosition, 1, chessMoveArrayList, null);
+        kingMoveArray.addAll(checkStraight(board, myPosition, 1, chessMoveArrayList, null));
+        return kingMoveArray;
     }
 
     private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
