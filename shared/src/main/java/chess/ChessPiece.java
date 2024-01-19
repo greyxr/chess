@@ -13,6 +13,7 @@ public class ChessPiece {
 
     public ChessGame.TeamColor pieceColor;
     public PieceType type;
+
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
@@ -76,7 +77,7 @@ public class ChessPiece {
     }
 
     private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
-        return null;
+        return checkStraight(board, myPosition, 8, chessMoveArrayList, null);
     }
 
     private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
@@ -96,7 +97,7 @@ public class ChessPiece {
         int col = myPosition.col;
         // Check north
         boolean isCapture = false;
-        for (int i = 0; i < range; i++) {
+        for (int i = 1; i < range + 1; i++) {
             int newRow = row + i;
             if (newRow < board.boardDim) {
                 if (isCapture) {
@@ -115,7 +116,7 @@ public class ChessPiece {
 
         // South
         isCapture = false;
-        for (int i = 0; i < range; i++) {
+        for (int i = 1; i < range + 1; i++) {
             int newRow = row - i;
             if (newRow >= 0) {
                 if (isCapture) {
@@ -134,7 +135,7 @@ public class ChessPiece {
 
         // East
         isCapture = false;
-        for (int j = 0; j < range; j++) {
+        for (int j = 1; j < range + 1; j++) {
             int newCol = col + j;
             if (newCol < board.boardDim) {
                 if (isCapture) {
@@ -153,7 +154,7 @@ public class ChessPiece {
 
         // West
         isCapture = false;
-        for (int j = 0; j < range; j++) {
+        for (int j = 1; j < range + 1; j++) {
             int newCol = col - j;
             if (newCol >= 0) {
                 if (isCapture) {
