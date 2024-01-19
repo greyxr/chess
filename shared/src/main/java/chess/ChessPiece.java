@@ -111,7 +111,7 @@ public class ChessPiece {
     }
 
     private Collection<ChessMove> checkDiagonal(ChessBoard board, ChessPosition myPosition, int range, ArrayList<ChessMove> chessMoveArrayList, ChessPiece.PieceType promotionPiece) {
-        int row = myPosition.row;
+        int row = myPosition.row ;
         int col = myPosition.col;
         // Check north-east
         boolean isCapture = false;
@@ -138,7 +138,7 @@ public class ChessPiece {
         for (int i = 1; i < range + 1; i++) {
             int newRow = row + i;
             int newCol = col - i;
-            if (newRow < board.boardDim && newCol >= 0) {
+            if (newRow < board.boardDim && newCol > 0) {
                 if (isCapture) {
                     break;
                 }
@@ -158,7 +158,7 @@ public class ChessPiece {
         for (int j = 1; j < range + 1; j++) {
             int newRow = row - j;
             int newCol = col + j;
-            if (newRow >= 0 && newCol < board.boardDim) {
+            if (newRow > 0 && newCol < board.boardDim) {
                 if (isCapture) {
                     break;
                 }
@@ -176,9 +176,9 @@ public class ChessPiece {
         // West
         isCapture = false;
         for (int j = 1; j < range + 1; j++) {
-            int newRow = col - j;
+            int newRow = row - j;
             int newCol = col - j;
-            if (newRow >= 0 && newCol >= 0) {
+            if (newRow > 0 && newCol > 0) {
                 if (isCapture) {
                     break;
                 }
@@ -222,7 +222,7 @@ public class ChessPiece {
         isCapture = false;
         for (int i = 1; i < range + 1; i++) {
             int newRow = row - i;
-            if (newRow >= 0) {
+            if (newRow > 0) {
                 if (isCapture) {
                     break;
                 }
@@ -260,7 +260,7 @@ public class ChessPiece {
         isCapture = false;
         for (int j = 1; j < range + 1; j++) {
             int newCol = col - j;
-            if (newCol >= 0) {
+            if (newCol > 0) {
                 if (isCapture) {
                     break;
                 }

@@ -7,7 +7,7 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    public int boardDim = 8;
+    public int boardDim = 9;
     public ChessPiece[][] board = new ChessPiece[boardDim][boardDim];
     public ChessBoard() {
         for (int i = 0; i < this.boardDim; i++) {
