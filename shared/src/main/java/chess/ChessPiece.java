@@ -107,7 +107,29 @@ public class ChessPiece {
     }
 
     private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
-        return null;
+        int row = myPosition.row;
+        int col = myPosition.col;
+
+        if (checkPosition(row + 2, col + 1, board)) chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row + 2, col + 1), null));
+        if (checkPosition(row + 2, col - 1, board)) chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row + 2, col - 1), null));
+        if (checkPosition(row - 2, col + 1, board)) chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row - 2, col + 1), null));
+        if (checkPosition(row - 2, col - 1, board)) chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row - 2, col - 1), null));
+        if (checkPosition(row + 1, col + 2, board)) chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row + 1, col + 2), null));
+        if (checkPosition(row + 1, col - 2, board)) chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row + 1, col - 2), null));
+        if (checkPosition(row - 1, col + 2, board)) chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row - 1, col + 2), null));
+        if (checkPosition(row - 1, col - 2, board)) chessMoveArrayList.add(new ChessMove(myPosition, new ChessPosition(row - 1, col - 2), null));
+
+        return chessMoveArrayList;
+    }
+
+    private boolean checkPosition(int row, int col, ChessBoard board) {
+        if (!isInBoard(row, col, board)) return false;
+        ChessPiece potentialPiece = board.getPiece(new ChessPosition(row, col));
+        if (potentialPiece == null) return true;
+        return !(this.pieceColor == potentialPiece.pieceColor);
+    }
+    private boolean isInBoard(int row, int col, ChessBoard board) {
+        return (row < board.boardDim && row > 0 && col < board.boardDim && col > 0);
     }
 
     private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
