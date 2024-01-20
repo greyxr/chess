@@ -1,5 +1,8 @@
 package chess;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -16,6 +19,19 @@ public class ChessBoard {
                 board[i][j] = null;
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessBoard that = (ChessBoard) o;
+        return Arrays.deepEquals(board, that.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(board);
     }
 
     /**
@@ -44,6 +60,23 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        // Set pawns
+        for (int j = 1; j < this.boardDim; j++) {
+            addPiece(new ChessPosition(2, j), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(7, j), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+        }
+
+        int[] setRow = {1, 8};
+        for (int i : setRow) {
+            ChessGame.TeamColor currentColor = (i == 1) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+            addPiece(new ChessPosition(i,1), new ChessPiece(currentColor, ChessPiece.PieceType.ROOK));
+            addPiece(new ChessPosition(i,2), new ChessPiece(currentColor, ChessPiece.PieceType.KNIGHT));
+            addPiece(new ChessPosition(i,3), new ChessPiece(currentColor, ChessPiece.PieceType.BISHOP));
+            addPiece(new ChessPosition(i,4), new ChessPiece(currentColor, ChessPiece.PieceType.QUEEN));
+            addPiece(new ChessPosition(i,5), new ChessPiece(currentColor, ChessPiece.PieceType.KING));
+            addPiece(new ChessPosition(i,6), new ChessPiece(currentColor, ChessPiece.PieceType.BISHOP));
+            addPiece(new ChessPosition(i,7), new ChessPiece(currentColor, ChessPiece.PieceType.KNIGHT));
+            addPiece(new ChessPosition(i,8), new ChessPiece(currentColor, ChessPiece.PieceType.ROOK));
+        }
     }
 }
