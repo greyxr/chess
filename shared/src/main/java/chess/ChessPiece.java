@@ -168,7 +168,7 @@ public class ChessPiece {
         }
 
         ChessPosition forwardRight = new ChessPosition(row + 1, col + 1);
-        if (board.getPiece(forwardRight) != null && checkPosition(row + 1, col - 1, board)) {
+        if (board.getPiece(forwardRight) != null && checkPosition(row + 1, col + 1, board)) {
             if (row + 1 == 8) {
                 addAllPawnPromotions(myPosition, forwardRight, chessMoveArrayList);
             } else {
