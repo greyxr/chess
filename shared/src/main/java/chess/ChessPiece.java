@@ -133,7 +133,95 @@ public class ChessPiece {
     }
 
     private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
-        return null;
+        switch (this.pieceColor) {
+            case ChessGame.TeamColor.WHITE -> checkWhitePawn(board, myPosition, chessMoveArrayList);
+            case ChessGame.TeamColor.BLACK -> checkBlackPawn(board, myPosition, chessMoveArrayList);
+        }
+        return chessMoveArrayList;
+    }
+
+    private Collection<ChessMove> checkWhitePawn(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
+        int row = myPosition.row;
+        int col = myPosition.col;
+        // Check one forward
+        ChessPosition oneForward = new ChessPosition(row + 1, col);
+        if (isInBoard(row+1, col, board) && board.getPiece(oneForward) == null) {
+            if (row + 1 == 8) {
+                addAllPawnPromotions(myPosition, oneForward, chessMoveArrayList);
+            } else {
+                chessMoveArrayList.add(new ChessMove(myPosition, oneForward, null));
+            }
+        }
+        // Check two forward
+        ChessPosition twoForward = new ChessPosition(row + 2, col);
+        if (row == 2 && isInBoard(row+2, col, board) && board.getPiece(twoForward) == null && board.getPiece(oneForward) == null) {
+            chessMoveArrayList.add(new ChessMove(myPosition, twoForward, null));
+        }
+        // Check diagonals
+        ChessPosition forwardLeft = new ChessPosition(row + 1, col - 1);
+        if (board.getPiece(forwardLeft) != null && checkPosition(row + 1, col - 1, board)) {
+            if (row + 1 == 8) {
+                addAllPawnPromotions(myPosition, forwardLeft, chessMoveArrayList);
+            } else {
+                chessMoveArrayList.add(new ChessMove(myPosition, forwardLeft, null));
+            }
+        }
+
+        ChessPosition forwardRight = new ChessPosition(row + 1, col + 1);
+        if (board.getPiece(forwardRight) != null && checkPosition(row + 1, col - 1, board)) {
+            if (row + 1 == 8) {
+                addAllPawnPromotions(myPosition, forwardRight, chessMoveArrayList);
+            } else {
+                chessMoveArrayList.add(new ChessMove(myPosition, forwardRight, null));
+            }
+        }
+
+        return chessMoveArrayList;
+    }
+
+    private Collection<ChessMove> checkBlackPawn(ChessBoard board, ChessPosition myPosition, ArrayList<ChessMove> chessMoveArrayList) {
+        int row = myPosition.row;
+        int col = myPosition.col;
+        // Check one forward
+        ChessPosition oneForward = new ChessPosition(row - 1, col);
+        if (isInBoard(row-1, col, board) && board.getPiece(oneForward) == null) {
+            if (row - 1 == 1) {
+                addAllPawnPromotions(myPosition, oneForward, chessMoveArrayList);
+            } else {
+                chessMoveArrayList.add(new ChessMove(myPosition, oneForward, null));
+            }
+        }
+        // Check two forward
+        ChessPosition twoForward = new ChessPosition(row - 2, col);
+        if (row == 7 && isInBoard(row-2, col, board) && board.getPiece(twoForward) == null && board.getPiece(oneForward) == null) {
+            chessMoveArrayList.add(new ChessMove(myPosition, twoForward, null));
+        }
+        // Check diagonals
+        ChessPosition forwardLeft = new ChessPosition(row - 1, col + 1);
+        if (board.getPiece(forwardLeft) != null && checkPosition(row - 1, col + 1, board)) {
+            if (row - 1 == 1) {
+                addAllPawnPromotions(myPosition, forwardLeft, chessMoveArrayList);
+            } else {
+                chessMoveArrayList.add(new ChessMove(myPosition, forwardLeft, null));
+            }
+        }
+        ChessPosition forwardRight = new ChessPosition(row - 1, col - 1);
+        if (board.getPiece(forwardRight) != null && checkPosition(row - 1, col - 1, board)) {
+            if (row - 1 == 1) {
+                addAllPawnPromotions(myPosition, forwardRight, chessMoveArrayList);
+            } else {
+                chessMoveArrayList.add(new ChessMove(myPosition, forwardRight, null));
+            }
+        }
+
+        return chessMoveArrayList;
+    }
+
+    private void addAllPawnPromotions(ChessPosition myPosition, ChessPosition newPosition, ArrayList<ChessMove> chessMoveArrayList) {
+        chessMoveArrayList.add(new ChessMove(myPosition, newPosition, PieceType.QUEEN));
+        chessMoveArrayList.add(new ChessMove(myPosition, newPosition, PieceType.ROOK));
+        chessMoveArrayList.add(new ChessMove(myPosition, newPosition, PieceType.BISHOP));
+        chessMoveArrayList.add(new ChessMove(myPosition, newPosition, PieceType.KNIGHT));
     }
 
     private Collection<ChessMove> checkDiagonal(ChessBoard board, ChessPosition myPosition, int range, ArrayList<ChessMove> chessMoveArrayList, ChessPiece.PieceType promotionPiece) {
