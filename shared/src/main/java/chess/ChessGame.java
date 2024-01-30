@@ -64,7 +64,7 @@ public class ChessGame {
             } catch (InvalidMoveException e) {
                 break;
             } finally {
-                this.undoMove(move);
+                this.undoMove();
             }
         }
         return pieceMoves;
@@ -81,8 +81,35 @@ public class ChessGame {
         throw new RuntimeException("Not implemented");
     }
 
-    public void undoMove(ChessMove move) {
-        throw new RuntimeException("Not implemented");
+    public void movePiece(ChessMove move) {
+        ChessMove tempMove = new ChessMove(move.getStartPosition(), move.getEndPosition(), move.promotionPiece);
+        ChessPosition endPosition = move.getEndPosition();
+        ChessPosition startPosition = move.getStartPosition();
+        ChessPiece displacedPiece = this.getBoard().getPiece(endPosition);
+        ChessPiece currentPiece = this.getBoard().getPiece(startPosition);
+        // If displaced piece is not null, it should be an enemy piece
+        if (displacedPiece != null) {
+            tempMove.setDisplacedInfo(displacedPiece, endPosition);
+        }
+        this.getBoard().addPiece(startPosition, null);
+        this.getBoard().addPiece(endPosition, currentPiece);
+        this.moveHistory.addFirst(move);
+    }
+
+    public void undoMove() {
+        if (this.moveHistory.peek() == null) return;
+        ChessMove lastMove = this.moveHistory.pop();
+        ChessPiece displacedPiece = lastMove.getDisplacedPiece();
+        ChessPosition endPosition = lastMove.getEndPosition();
+        ChessPosition startPosition = lastMove.getStartPosition();
+        ChessPiece firstPiece = this.getBoard().getPiece(endPosition);
+        this.getBoard().addPiece(startPosition, firstPiece);
+        if (displacedPiece == null) {
+            this.getBoard().addPiece(endPosition, null);
+        } else {
+            this.getBoard().addPiece(endPosition, new ChessPiece(displacedPiece.getTeamColor(), displacedPiece.getPieceType()));
+        }
+        return;
     }
 
     /**
