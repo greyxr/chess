@@ -93,7 +93,7 @@ public class ChessGame {
         }
         this.getBoard().addPiece(startPosition, null);
         this.getBoard().addPiece(endPosition, currentPiece);
-        this.moveHistory.addFirst(move);
+        this.moveHistory.addFirst(tempMove);
     }
 
     public void undoMove() {
@@ -156,7 +156,23 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (!isInCheck(teamColor)) return false;
+        for (int i = 1; i < this.getBoard().boardDim; i++) {
+            for (int j = 1; j < this.getBoard().boardDim; j++) {
+                ChessPosition currentPosition = new ChessPosition(i, j);
+                ChessPiece currentPiece = this.getBoard().getPiece(currentPosition);
+                // Ignore pieces that aren't there or are on the enemy team
+                if (currentPiece == null || currentPiece.getTeamColor() != teamColor) continue;
+                Collection<ChessMove> currentPieceMoves = currentPiece.pieceMoves(this.getBoard(), currentPosition);
+                for (ChessMove move : currentPieceMoves) {
+                    movePiece(move);
+                    boolean stillInCheck = isInCheck(teamColor);
+                    undoMove();
+                    if (!stillInCheck) return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
