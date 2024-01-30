@@ -13,6 +13,9 @@ public class ChessMove {
     public ChessPosition endPosition;
     public ChessPiece.PieceType promotionPiece;
 
+    private ChessPiece displacedPiece;
+    private ChessPosition displacedPosition;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -36,6 +39,19 @@ public class ChessMove {
         this.startPosition = startPosition;
         this.endPosition = endPosition;
         this.promotionPiece = promotionPiece;
+    }
+
+    public void setDisplacedInfo(ChessPiece displacedPiece, ChessPosition displacedPosition) {
+        this.displacedPiece = displacedPiece;
+        this.displacedPosition = displacedPosition;
+    }
+
+    public ChessPiece getDisplacedPiece() {
+        return displacedPiece;
+    }
+
+    public ChessPosition getDisplacedPosition() {
+        return displacedPosition;
     }
 
     /**

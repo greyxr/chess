@@ -1,6 +1,6 @@
 package chess;
 
-import java.util.Collection;
+import java.util.*;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -11,6 +11,8 @@ import java.util.Collection;
 public class ChessGame {
     public TeamColor teamColor;
     public ChessBoard board;
+
+    public Deque<ChessMove> moveHistory = new ArrayDeque<>();
 
     public ChessGame() {
         this.teamColor = TeamColor.WHITE;
@@ -49,7 +51,23 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece potentialPiece = this.getBoard().getPiece(startPosition);
+        if (potentialPiece == null) return null;
+        ArrayList<ChessMove> pieceMoves = new ArrayList<>();
+
+        for (ChessMove move : potentialPiece.pieceMoves(this.getBoard(), startPosition)) {
+            try {
+                this.makeMove(move);
+                if (!isInCheck(potentialPiece.getTeamColor()) && !isInCheckmate(potentialPiece.getTeamColor()) && !isInStalemate(potentialPiece.getTeamColor())) {
+                    pieceMoves.add(move);
+                }
+            } catch (InvalidMoveException e) {
+                break;
+            } finally {
+                this.undoMove(move);
+            }
+        }
+        return pieceMoves;
     }
 
     /**
@@ -59,6 +77,11 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        this.moveHistory.addFirst(move);
+        throw new RuntimeException("Not implemented");
+    }
+
+    public void undoMove(ChessMove move) {
         throw new RuntimeException("Not implemented");
     }
 
