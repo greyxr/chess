@@ -159,7 +159,7 @@ public class ChessPiece {
         }
         // Check diagonals
         ChessPosition forwardLeft = new ChessPosition(row + 1, col - 1);
-        if (board.getPiece(forwardLeft) != null && checkPosition(row + 1, col - 1, board)) {
+        if (checkPosition(row + 1, col - 1, board) && board.getPiece(forwardLeft) != null) {
             if (row + 1 == 8) {
                 addAllPawnPromotions(myPosition, forwardLeft, chessMoveArrayList);
             } else {
@@ -168,7 +168,7 @@ public class ChessPiece {
         }
 
         ChessPosition forwardRight = new ChessPosition(row + 1, col + 1);
-        if (board.getPiece(forwardRight) != null && checkPosition(row + 1, col + 1, board)) {
+        if (checkPosition(row + 1, col + 1, board) && board.getPiece(forwardRight) != null) {
             if (row + 1 == 8) {
                 addAllPawnPromotions(myPosition, forwardRight, chessMoveArrayList);
             } else {
@@ -198,7 +198,7 @@ public class ChessPiece {
         }
         // Check diagonals
         ChessPosition forwardLeft = new ChessPosition(row - 1, col + 1);
-        if (board.getPiece(forwardLeft) != null && checkPosition(row - 1, col + 1, board)) {
+        if (checkPosition(row - 1, col + 1, board) && board.getPiece(forwardLeft) != null) {
             if (row - 1 == 1) {
                 addAllPawnPromotions(myPosition, forwardLeft, chessMoveArrayList);
             } else {
@@ -206,7 +206,7 @@ public class ChessPiece {
             }
         }
         ChessPosition forwardRight = new ChessPosition(row - 1, col - 1);
-        if (board.getPiece(forwardRight) != null && checkPosition(row - 1, col - 1, board)) {
+        if (checkPosition(row - 1, col - 1, board) && board.getPiece(forwardRight) != null) {
             if (row - 1 == 1) {
                 addAllPawnPromotions(myPosition, forwardRight, chessMoveArrayList);
             } else {

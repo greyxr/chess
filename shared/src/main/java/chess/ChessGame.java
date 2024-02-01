@@ -53,21 +53,17 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece potentialPiece = this.getBoard().getPiece(startPosition);
         if (potentialPiece == null) return null;
-        ArrayList<ChessMove> pieceMoves = new ArrayList<>();
+        ArrayList<ChessMove> potentialMoves = new ArrayList<>();
+        Collection<ChessMove> pieceMoves = potentialPiece.pieceMoves(this.getBoard(), startPosition);
 
-        for (ChessMove move : potentialPiece.pieceMoves(this.getBoard(), startPosition)) {
-            try {
-                this.makeMove(move);
-                if (!isInCheck(potentialPiece.getTeamColor()) && !isInCheckmate(potentialPiece.getTeamColor()) && !isInStalemate(potentialPiece.getTeamColor())) {
-                    pieceMoves.add(move);
+        for (ChessMove move : pieceMoves) {
+                this.movePiece(move);
+                if (!isInCheck(potentialPiece.getTeamColor()) && !isInCheckmate(potentialPiece.getTeamColor())) {
+                    potentialMoves.add(move);
                 }
-            } catch (InvalidMoveException e) {
-                break;
-            } finally {
                 this.undoMove();
-            }
         }
-        return pieceMoves;
+        return potentialMoves;
     }
 
     /**
@@ -77,8 +73,12 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        this.moveHistory.addFirst(move);
-        throw new RuntimeException("Not implemented");
+        TeamColor currentColor = this.getBoard().getPiece(move.getStartPosition()).getTeamColor();
+        if (this.getTeamTurn() != currentColor) throw new InvalidMoveException("It is not your turn.");
+        Collection<ChessMove> validMoves = this.validMoves(move.getStartPosition());
+        if (!validMoves.contains(move)) throw new InvalidMoveException("Move is invalid.");
+        movePiece(move);
+        this.setTeamTurn(currentColor == TeamColor.BLACK ? TeamColor.WHITE : TeamColor.BLACK);
     }
 
     public void movePiece(ChessMove move) {
@@ -91,8 +91,12 @@ public class ChessGame {
         if (displacedPiece != null) {
             tempMove.setDisplacedInfo(displacedPiece, endPosition);
         }
+        if (move.getPromotionPiece() != null) {
+            this.getBoard().addPiece(endPosition, new ChessPiece(currentPiece.getTeamColor(), move.getPromotionPiece()));
+        } else {
+            this.getBoard().addPiece(endPosition, currentPiece);
+        }
         this.getBoard().addPiece(startPosition, null);
-        this.getBoard().addPiece(endPosition, currentPiece);
         this.moveHistory.addFirst(tempMove);
     }
 
@@ -128,7 +132,8 @@ public class ChessGame {
                 ChessPiece piece = board.getPiece(position);
                 if (piece == null) continue;
                 if (piece.getTeamColor() != teamColor) {
-                    for (ChessMove move : piece.pieceMoves(board, position)) {
+                    Collection<ChessMove> pieceMoves = piece.pieceMoves(board, position);
+                    for (ChessMove move : pieceMoves) {
                         enemyMoves.add(move.endPosition);
                     }
                 }
@@ -137,6 +142,8 @@ public class ChessGame {
                 }
             }
         }
+
+        if (kingPosition == null) return false; // Can't be in check if you have no king
 
         boolean check = false;
         for (ChessPosition chessPosition : enemyMoves) {
