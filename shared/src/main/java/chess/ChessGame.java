@@ -126,7 +126,6 @@ public class ChessGame {
         } else {
             this.getBoard().addPiece(endPosition, new ChessPiece(displacedPiece.getTeamColor(), displacedPiece.getPieceType()));
         }
-        return;
     }
 
     /**
@@ -203,12 +202,12 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        for (int i = 1; i < this.getBoard().boardDim; i++) {
-            for (int j = 1; j < this.getBoard().boardDim; j++) {
+        int boardSize = this.getBoard().boardDim;
+        for (int i = 1; i < boardSize; i++) {
+            for (int j = 1; j < boardSize; j++) {
                 ChessPosition currentPosition = new ChessPosition(i, j);
                 ChessPiece currentPiece = this.getBoard().getPiece(currentPosition);
-                if (currentPiece == null) continue;
-                if (currentPiece.getTeamColor() != teamColor) continue;
+                if (currentPiece == null || currentPiece.getTeamColor() != teamColor) continue;
                 if (this.validMoves(currentPosition) != null && !this.validMoves(currentPosition).isEmpty()) return false;
             }
         }
