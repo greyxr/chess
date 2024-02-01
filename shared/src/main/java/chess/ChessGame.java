@@ -43,6 +43,19 @@ public class ChessGame {
         BLACK
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessGame chessGame = (ChessGame) o;
+        return teamColor == chessGame.teamColor && Objects.equals(getBoard(), chessGame.getBoard());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamColor, getBoard());
+    }
+
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -190,7 +203,16 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        for (int i = 1; i < this.getBoard().boardDim; i++) {
+            for (int j = 1; j < this.getBoard().boardDim; j++) {
+                ChessPosition currentPosition = new ChessPosition(i, j);
+                ChessPiece currentPiece = this.getBoard().getPiece(currentPosition);
+                if (currentPiece == null) continue;
+                if (currentPiece.getTeamColor() != teamColor) continue;
+                if (this.validMoves(currentPosition) != null && !this.validMoves(currentPosition).isEmpty()) return false;
+            }
+        }
+        return true;
     }
 
     /**
