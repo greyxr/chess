@@ -1,26 +1,30 @@
 package dataAccess;
 
+import model.AuthData;
 import model.UserData;
 
+import java.util.ArrayList;
+
 public class MemoryUserDAO implements UserDAO {
+    static ArrayList<AuthData> memoryUser = new ArrayList<>();
 
     @Override
-    public void clear() {
+    public void clearUsers() throws DataAccessException {
 
     }
 
     @Override
-    public UserData insertUser() {
+    public UserData insertUser() throws DataAccessException {
         return null;
     }
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException {
         return null;
     }
 
     @Override
-    public UserData createUser(String username, String password) {
+    public UserData createUser(String username, String password) throws DataAccessException {
         return null;
     }
 }
