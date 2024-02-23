@@ -1,6 +1,13 @@
 package server;
 
+import com.google.gson.Gson;
+import model.*;
+import service.AuthService;
+import service.GameService;
+import service.UserService;
 import spark.*;
+
+import java.io.Reader;
 
 public class Server {
 
@@ -9,7 +16,20 @@ public class Server {
 
         Spark.staticFiles.location("web");
 
-        // Register your endpoints and handle exceptions here.
+        // Register user
+        Spark.post("/user", (request, response) -> new Gson().toJson(new UserService().addUser(new Gson().fromJson(request.body(), UserData.class))));
+        // Login
+        Spark.post("/session", (request, response) -> new AuthService().login(new Gson().fromJson(request.body(), AuthData.class)));
+        // Logout
+        Spark.delete("/session", (request, response) -> new AuthService().logout(new Gson().fromJson(request.body(), AuthData.class)));
+        // List games
+        Spark.get("/game", (request, response) -> new GameService().listGames());
+        // Create game
+        Spark.post("/game", (request, response) -> new GameService().createGame(new Gson().fromJson(request.body(), GameData.class)));
+        // Join game
+        Spark.put("/game", (request, response) -> new Gson().toJson(new GameService().joinGame(new Gson().fromJson(request.body(), JoinGameRequest.class), request.headers())));
+        // Clear db
+        Spark.delete("/db", (request, response) -> new UserService().clear());
 
         Spark.awaitInitialization();
         return Spark.port();
