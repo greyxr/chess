@@ -1,8 +1,7 @@
 package handlers;
 import dataAccess.DataAccessException;
 import exceptions.BadRequestException;
-import model.AuthData;
-import model.AuthTokenResponse;
+import model.RegisterUserResponse;
 import model.ErrorResponse;
 import model.UserData;
 import service.AuthService;
@@ -10,8 +9,6 @@ import service.GameService;
 import service.UserService;
 import spark.*;
 import com.google.gson.Gson;
-
-import java.util.UUID;
 
 public class UserHandler {
     public String clear(Request req, Response res) throws DataAccessException {
@@ -31,7 +28,7 @@ public class UserHandler {
             if (createUserRequest.username() == null || createUserRequest.password() == null || createUserRequest.email() == null) {
                 throw new BadRequestException(400, "Error: Missing one or more paramters.");
             }
-            AuthTokenResponse response = new UserService().addUser(createUserRequest);
+            RegisterUserResponse response = new UserService().addUser(createUserRequest);
             return new Gson().toJson(response);
         } catch (BadRequestException e) {
             res.status(e.StatusCode());
