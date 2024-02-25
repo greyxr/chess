@@ -4,14 +4,17 @@ import dataAccess.DataAccessException;
 import dataAccess.MemoryAuthDAO;
 import dataAccess.MemoryUserDAO;
 import dataAccess.UserDAO;
+import exceptions.BadRequestException;
+import model.AuthTokenResponse;
 import model.UserData;
 
 import java.util.UUID;
 
 public class UserService {
-    public UUID addUser(UserData user) throws DataAccessException {
+    public AuthTokenResponse addUser(UserData user) throws DataAccessException, BadRequestException {
         UserData createdUser = new MemoryUserDAO().createUser(user);
-        return new MemoryAuthDAO().createAuth(createdUser.username());
+        UUID authtoken = new MemoryAuthDAO().createAuth(createdUser.username());
+        return new AuthTokenResponse(createdUser.username(), authtoken);
     }
 
     public void clear() throws DataAccessException {

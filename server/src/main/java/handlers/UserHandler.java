@@ -1,6 +1,9 @@
 package handlers;
 import dataAccess.DataAccessException;
+import exceptions.BadRequestException;
 import model.AuthData;
+import model.AuthTokenResponse;
+import model.ErrorResponse;
 import model.UserData;
 import service.AuthService;
 import service.GameService;
@@ -11,7 +14,7 @@ import com.google.gson.Gson;
 import java.util.UUID;
 
 public class UserHandler {
-    public String clear(Request req) throws DataAccessException {
+    public String clear(Request req, Response res) throws DataAccessException {
         // Make an instance of GameService for this endpoint
         UserService service = new UserService();
         GameService gameService = new GameService();
@@ -22,8 +25,17 @@ public class UserHandler {
         return new Gson().toJson(null);
     }
 
-    public String createUser(Request req) throws DataAccessException {
-        UUID authtoken = new UserService().addUser(new Gson().fromJson(req.body(), UserData.class));
-        return new Gson().toJson(authtoken);
+    public String createUser(Request req, Response res) throws DataAccessException, BadRequestException {
+        try {
+            UserData createUserRequest = new Gson().fromJson(req.body(), UserData.class);
+            if (createUserRequest.username() == null || createUserRequest.password() == null || createUserRequest.email() == null) {
+                throw new BadRequestException(400, "Error: Missing one or more paramters.");
+            }
+            AuthTokenResponse response = new UserService().addUser(createUserRequest);
+            return new Gson().toJson(response);
+        } catch (BadRequestException e) {
+            res.status(e.StatusCode());
+            return new Gson().toJson(new ErrorResponse(e.Message()));
+        }
     }
 }

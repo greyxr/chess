@@ -1,5 +1,6 @@
 package dataAccess;
 
+import exceptions.BadRequestException;
 import model.AuthData;
 import model.UserData;
 import org.eclipse.jetty.server.Authentication;
@@ -27,8 +28,12 @@ public class MemoryUserDAO implements UserDAO {
     }
 
     @Override
-    public UserData createUser(UserData user) throws DataAccessException {
-        memoryUser.removeIf(currentUser -> Objects.equals(currentUser, user));
+    public UserData createUser(UserData user) throws DataAccessException, BadRequestException {
+        for (UserData currentUser : memoryUser) {
+            if (Objects.equals(currentUser.username(), user.username()) || Objects.equals(currentUser.email(), user.email())) {
+                throw new BadRequestException(403, "Error: User already exists");
+            }
+        }
         memoryUser.add(user);
         return user;
     }
