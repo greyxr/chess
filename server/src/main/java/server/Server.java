@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import handlers.UserHandler;
 import model.*;
 import service.AuthService;
 import service.GameService;
@@ -17,7 +18,7 @@ public class Server {
         Spark.staticFiles.location("web");
 
         // Register user
-        Spark.post("/user", (request, response) -> new Gson().toJson(new UserService().addUser(new Gson().fromJson(request.body(), UserData.class))));
+        Spark.post("/user", (request, response) -> new UserHandler().createUser(request));
         // Login
         Spark.post("/session", (request, response) -> new AuthService().login(new Gson().fromJson(request.body(), AuthData.class)));
         // Logout
@@ -29,7 +30,7 @@ public class Server {
         // Join game
         Spark.put("/game", (request, response) -> new Gson().toJson(new GameService().joinGame(new Gson().fromJson(request.body(), JoinGameRequest.class), request.headers())));
         // Clear db
-        Spark.delete("/db", (request, response) -> new UserService().clear());
+        Spark.delete("/db", (request, response) -> new UserHandler().clear(request));
 
         Spark.awaitInitialization();
         return Spark.port();
