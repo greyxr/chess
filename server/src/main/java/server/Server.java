@@ -20,7 +20,7 @@ public class Server {
         // Register user
         Spark.post("/user", (request, response) -> new UserHandler().createUser(request, response));
         // Login
-        Spark.post("/session", (request, response) -> new AuthService().login(new Gson().fromJson(request.body(), AuthData.class)));
+        Spark.post("/session", (request, response) -> new UserHandler().loginRequest(request, response));
         // Logout
         Spark.delete("/session", (request, response) -> new AuthService().logout(new Gson().fromJson(request.body(), AuthData.class)));
         // List games
