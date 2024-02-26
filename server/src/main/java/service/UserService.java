@@ -32,4 +32,13 @@ public class UserService {
         UserDAO dao = new MemoryUserDAO();
         dao.clearUsers();
     }
+
+    public void logoutUser(UUID authtoken) throws DataAccessException, BadRequestException {
+        AuthDAO dao = new MemoryAuthDAO();
+        AuthData checkAuth = dao.getAuth(authtoken);
+        if (checkAuth == null) {
+            throw new BadRequestException(401, "Error: unauthorized");
+        }
+        dao.deleteAuth(checkAuth.username());
+    }
 }

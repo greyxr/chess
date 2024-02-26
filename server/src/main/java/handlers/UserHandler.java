@@ -11,6 +11,8 @@ import service.UserService;
 import spark.*;
 import com.google.gson.Gson;
 
+import java.util.UUID;
+
 public class UserHandler {
     public String clear(Request req, Response res) throws DataAccessException {
         try {
@@ -21,9 +23,8 @@ public class UserHandler {
             service.clear();
             gameService.clearGames();
             authService.clearAuth();
-        } catch (DataAccessException e) {
-            res.status(500);
-            return new Gson().toJson(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            return new ExceptionHandler().handleServerError(e, res);
         }
         return new Gson().toJson(null);
     }
@@ -37,8 +38,9 @@ public class UserHandler {
             AuthData response = new UserService().addUser(createUserRequest);
             return new Gson().toJson(response);
         } catch (BadRequestException e) {
-            res.status(e.StatusCode());
-            return new Gson().toJson(new ErrorResponse(e.Message()));
+            return new ExceptionHandler().handleRequestError(e, res);
+        } catch (Exception e) {
+            return new ExceptionHandler().handleServerError(e, res);
         }
     }
 
@@ -51,8 +53,21 @@ public class UserHandler {
             AuthData response = new UserService().loginUser(loginRequest);
             return new Gson().toJson(response);
         } catch (BadRequestException e) {
-            res.status(e.StatusCode());
-            return new Gson().toJson(new ErrorResponse(e.Message()));
+            return new ExceptionHandler().handleRequestError(e, res);
+        } catch (Exception e) {
+            return new ExceptionHandler().handleServerError(e, res);
+        }
+    }
+
+    public String logoutRequest(Request req, Response res) {
+        try {
+            UUID authtoken = UUID.fromString(req.headers("Authorization"));
+            new UserService().logoutUser(authtoken);
+            return new Gson().toJson(null);
+        } catch (BadRequestException e) {
+            return new ExceptionHandler().handleRequestError(e, res);
+        } catch (Exception e) {
+            return new ExceptionHandler().handleServerError(e, res);
         }
     }
 }
