@@ -36,14 +36,4 @@ public class MemoryAuthDAO implements AuthDAO {
 
         return null;
     }
-
-    public AuthData getAuthFromUserName(String username) {
-        for (AuthData auth : memoryAuth) {
-            if (username.equals(auth.username())) {
-                return auth;
-            }
-        }
-
-        return null;
-    }
 }

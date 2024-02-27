@@ -12,7 +12,7 @@ public class ExceptionHandler {
     }
 
     public String handleRequestError(BadRequestException e, Response res) {
-        res.status(e.StatusCode());
-        return new Gson().toJson(new ErrorResponse(e.Message()));
+        res.status(e.statusCode());
+        return new Gson().toJson(new ErrorResponse(e.message()));
     }
 }

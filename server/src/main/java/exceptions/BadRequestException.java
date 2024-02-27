@@ -10,11 +10,11 @@ public class BadRequestException extends Exception {
         this.message = message;
     }
 
-    public int StatusCode() {
+    public int statusCode() {
         return statusCode;
     }
 
-    public String Message() {
+    public String message() {
         return message;
     }
 }

@@ -50,10 +50,6 @@ public class ChessMove {
         return displacedPiece;
     }
 
-    public ChessPosition getDisplacedPosition() {
-        return displacedPosition;
-    }
-
     /**
      * @return ChessPosition of starting location
      */

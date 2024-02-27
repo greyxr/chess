@@ -52,11 +52,6 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     @Override
-    public void deleteGame(int gameID) throws DataAccessException {
-        memoryGame.removeIf(game -> Objects.equals(game.gameID(), gameID));
-    }
-
-    @Override
     public int getBiggestGameId() throws DataAccessException {
         GameData biggestGame = new GameData(0, null, null, null, null);
         for (GameData game : memoryGame) {
