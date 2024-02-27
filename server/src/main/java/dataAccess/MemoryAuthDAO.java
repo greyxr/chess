@@ -30,7 +30,7 @@ public class MemoryAuthDAO implements AuthDAO {
     @Override
     public AuthData getAuth(UUID authtoken) throws DataAccessException {
         for (AuthData auth : memoryAuth) {
-            if (auth.authToken() == authtoken) {
+            if (authtoken.equals(auth.authToken())) {
                 return auth;
             }
         }

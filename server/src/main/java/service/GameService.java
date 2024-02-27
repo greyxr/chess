@@ -6,18 +6,20 @@ import dataAccess.MemoryGameDAO;
 import model.GameData;
 import model.JoinGameRequest;
 
+import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 public class GameService {
     public void clearGames() throws DataAccessException {
         GameDAO dao = new MemoryGameDAO();
         dao.clearGames();
     }
-    public Object listGames() {
-        return null;
+    public Collection<GameData> listGames() throws DataAccessException {
+        return new MemoryGameDAO().getGames();
     }
 
-    public Object createGame(GameData gameData) {
+    public String createGame(GameData gameData) {
         return null;
     }
 

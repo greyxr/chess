@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import handlers.GameHandler;
 import handlers.UserHandler;
 import model.*;
 import service.AuthService;
@@ -24,7 +25,7 @@ public class Server {
         // Logout
         Spark.delete("/session", (request, response) -> new UserHandler().logoutRequest(request, response));
         // List games
-        Spark.get("/game", (request, response) -> new GameService().listGames());
+        Spark.get("/game", (request, response) -> new GameHandler().listGamesRequest(request, response));
         // Create game
         Spark.post("/game", (request, response) -> new GameService().createGame(new Gson().fromJson(request.body(), GameData.class)));
         // Join game

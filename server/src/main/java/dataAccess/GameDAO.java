@@ -13,6 +13,8 @@ public interface GameDAO {
 
     void insertUser(int gameID, String username, String color) throws DataAccessException;
 
+    void insertGame(int gameID, String gameName) throws DataAccessException;
+
     void deleteGame(int gameID) throws DataAccessException;
 
 

@@ -62,7 +62,7 @@ public class UserHandler {
     public String logoutRequest(Request req, Response res) {
         try {
             UUID authtoken = UUID.fromString(req.headers("Authorization"));
-            new UserService().logoutUser(authtoken);
+            new UserService().logoutUser(new AuthService().checkAuth(authtoken));
             return new Gson().toJson(null);
         } catch (BadRequestException e) {
             return new ExceptionHandler().handleRequestError(e, res);
