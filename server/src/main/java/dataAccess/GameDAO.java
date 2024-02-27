@@ -17,5 +17,7 @@ public interface GameDAO {
 
     void deleteGame(int gameID) throws DataAccessException;
 
+    int getBiggestGameId() throws DataAccessException;
+
 
 }

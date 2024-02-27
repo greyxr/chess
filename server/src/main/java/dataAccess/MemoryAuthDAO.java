@@ -21,7 +21,6 @@ public class MemoryAuthDAO implements AuthDAO {
 
     @Override
     public UUID createAuth(String username) throws DataAccessException {
-        memoryAuth.removeIf(auth -> Objects.equals(auth.username(), username));
         UUID uuid = UUID.randomUUID();
         memoryAuth.add(new AuthData(uuid, username));
         return uuid;
@@ -31,6 +30,16 @@ public class MemoryAuthDAO implements AuthDAO {
     public AuthData getAuth(UUID authtoken) throws DataAccessException {
         for (AuthData auth : memoryAuth) {
             if (authtoken.equals(auth.authToken())) {
+                return auth;
+            }
+        }
+
+        return null;
+    }
+
+    public AuthData getAuthFromUserName(String username) {
+        for (AuthData auth : memoryAuth) {
+            if (username.equals(auth.username())) {
                 return auth;
             }
         }

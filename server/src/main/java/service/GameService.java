@@ -19,8 +19,11 @@ public class GameService {
         return new MemoryGameDAO().getGames();
     }
 
-    public String createGame(GameData gameData) {
-        return null;
+    public GameData createGame(GameData gameData) throws DataAccessException {
+        GameDAO dao = new MemoryGameDAO();
+        int gameID = dao.getBiggestGameId() + 1;
+        dao.insertGame(gameID, gameData.gameName());
+        return new GameData(gameID, null, null, null, null);
     }
 
     public Object joinGame(JoinGameRequest joinGameRequest, Set<String> headers) {

@@ -27,7 +27,7 @@ public class Server {
         // List games
         Spark.get("/game", (request, response) -> new GameHandler().listGamesRequest(request, response));
         // Create game
-        Spark.post("/game", (request, response) -> new GameService().createGame(new Gson().fromJson(request.body(), GameData.class)));
+        Spark.post("/game", (request, response) -> new GameHandler().createGameRequest(request, response));
         // Join game
         Spark.put("/game", (request, response) -> new Gson().toJson(new GameService().joinGame(new Gson().fromJson(request.body(), JoinGameRequest.class), request.headers())));
         // Clear db

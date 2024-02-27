@@ -24,7 +24,6 @@ public class UserService {
         }
         // Delete any old authtokens and create a new one to send back
         AuthDAO dao = new MemoryAuthDAO();
-        dao.deleteAuth(user.username());
         return new AuthData(dao.createAuth(user.username()), user.username());
     }
 

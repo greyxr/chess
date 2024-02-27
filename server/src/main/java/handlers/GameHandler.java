@@ -5,10 +5,10 @@ import exceptions.BadRequestException;
 import model.GameData;
 import service.AuthService;
 import service.GameService;
-import service.UserService;
 import spark.Request;
 import spark.Response;
 
+import java.util.Collection;
 import java.util.UUID;
 
 public class GameHandler {
@@ -17,6 +17,10 @@ public class GameHandler {
             // Check authtoken
 //            UUID newAuthToken = new AuthService().refreshAuth(UUID.fromString(req.headers("Authorization")));
             new AuthService().checkAuth(UUID.fromString(req.headers("Authorization")));
+            Collection<GameData> gamesList = new GameService().listGames();
+            if (gamesList.isEmpty()) {
+                return new Gson().toJson(null);
+            }
             return new Gson().toJson(new GameService().listGames());
         } catch (BadRequestException e) {
             return new ExceptionHandler().handleRequestError(e, res);
