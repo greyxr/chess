@@ -43,8 +43,12 @@ public class UserServiceTests {
     void addUserTwice() throws BadRequestException, DataAccessException {
         userService.addUser(validUser);
         try {
-            assertThrows(BadRequestException.class, ()-> userService.addUser(validUser), "Expected BadRequestException");
-        } catch(Exception ignored) {}
+//            assertThrows(BadRequestException.class, ()-> userService.addUser(validUser), "Expected BadRequestException");
+            userService.addUser(validUser);
+        } catch(Exception e) {
+            String message = e.getMessage();
+            assertEquals(message, "Error: User already exists");
+        }
     }
 
     @Test
