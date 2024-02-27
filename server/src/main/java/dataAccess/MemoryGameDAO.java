@@ -3,12 +3,10 @@ package dataAccess;
 import chess.ChessGame;
 import model.GameData;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 public class MemoryGameDAO implements GameDAO {
-    static ArrayList<GameData> memoryGame = new ArrayList<>();
+    static Collection<GameData> memoryGame = new ArrayList<>();
 
     @Override
     public void clearGames() throws DataAccessException {
@@ -43,8 +41,9 @@ public class MemoryGameDAO implements GameDAO {
         }
 
         memoryGame.remove(targetGame);
-        GameData newGame = (color.equalsIgnoreCase("white")) ? (new GameData(targetGame.gameID(), targetGame.whiteUsername(), username, targetGame.gameName(), targetGame.game()))
-                : new GameData(targetGame.gameID(), username, targetGame.blackUsername(), targetGame.gameName(), targetGame.game());
+        GameData newGame = (color.equalsIgnoreCase("white")) ? (new GameData(targetGame.gameID(), username, targetGame.blackUsername(), targetGame.gameName(), targetGame.game()))
+                : new GameData(targetGame.gameID(), targetGame.whiteUsername(), username, targetGame.gameName(), targetGame.game());
+        memoryGame.add(newGame);
     }
 
     @Override

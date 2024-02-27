@@ -33,6 +33,6 @@ public class UserService {
     }
 
     public void logoutUser(AuthData authData) throws DataAccessException, BadRequestException {
-        new MemoryAuthDAO().deleteAuth(authData.username());
+        new MemoryAuthDAO().deleteAuth(authData.authToken());
     }
 }

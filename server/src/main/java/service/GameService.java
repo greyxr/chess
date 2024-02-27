@@ -2,7 +2,9 @@ package service;
 
 import dataAccess.DataAccessException;
 import dataAccess.GameDAO;
+import dataAccess.MemoryAuthDAO;
 import dataAccess.MemoryGameDAO;
+import exceptions.BadRequestException;
 import model.GameData;
 import model.JoinGameRequest;
 
@@ -26,7 +28,29 @@ public class GameService {
         return new GameData(gameID, null, null, null, null);
     }
 
-    public Object joinGame(JoinGameRequest joinGameRequest, Set<String> headers) {
-        return headers;
+    public void joinGame(JoinGameRequest joinGameRequest, UUID authtoken) throws DataAccessException, BadRequestException {
+        MemoryGameDAO dao = new MemoryGameDAO();
+        GameData requestedGame = dao.getGame(joinGameRequest.gameID());
+        if (requestedGame == null) {
+            throw new BadRequestException(400, "Error: Invalid gameID");
+        }
+        if (joinGameRequest.playerColor() == null) {
+            return;
+        }
+        switch (joinGameRequest.playerColor().toLowerCase()) {
+            case "white":
+                if (requestedGame.whiteUsername() != null) {
+                    throw new BadRequestException(403, "Error: already taken");
+                }
+                dao.insertUser(joinGameRequest.gameID(), new MemoryAuthDAO().getAuth(authtoken).username(), "WHITE");
+                break;
+            case "black":
+                if (requestedGame.blackUsername() != null) {
+                    throw new BadRequestException(403, "Error: already taken");
+                }
+                dao.insertUser(joinGameRequest.gameID(), new MemoryAuthDAO().getAuth(authtoken).username(), "BLACK");
+                break;
+        }
+
     }
 }

@@ -6,7 +6,8 @@ import java.util.UUID;
 
 public interface AuthDAO {
     void clearAuth() throws DataAccessException;
-    void deleteAuth(String username) throws DataAccessException;
+
+    void deleteAuth(UUID authtoken) throws DataAccessException;
 
     UUID createAuth(String username) throws DataAccessException;
 

@@ -1,6 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
+import exceptions.BadRequestException;
+import handlers.ExceptionHandler;
 import handlers.GameHandler;
 import handlers.UserHandler;
 import model.*;
@@ -10,6 +12,10 @@ import service.UserService;
 import spark.*;
 
 import java.io.Reader;
+import java.util.UUID;
+
+import static spark.Spark.before;
+import static spark.Spark.halt;
 
 public class Server {
 
@@ -17,6 +23,18 @@ public class Server {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
+
+        before("/game", (request, response) -> {
+            try {
+                String checkAuth = request.headers("Authorization");
+                if (checkAuth.length() != 36) {
+                    throw new BadRequestException(401, "Error: unauthorized");
+                }
+                new AuthService().checkAuth(UUID.fromString(request.headers("Authorization")));
+            } catch(BadRequestException e) {
+                halt(401, new ExceptionHandler().handleRequestError(e, response));
+            }
+        });
 
         // Register user
         Spark.post("/user", (request, response) -> new UserHandler().createUser(request, response));
@@ -29,7 +47,7 @@ public class Server {
         // Create game
         Spark.post("/game", (request, response) -> new GameHandler().createGameRequest(request, response));
         // Join game
-        Spark.put("/game", (request, response) -> new Gson().toJson(new GameService().joinGame(new Gson().fromJson(request.body(), JoinGameRequest.class), request.headers())));
+        Spark.put("/game", (request, response) -> new GameHandler().joinGameRequest(request, response));
         // Clear db
         Spark.delete("/db", (request, response) -> new UserHandler().clear(request, response));
 

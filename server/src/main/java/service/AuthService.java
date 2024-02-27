@@ -34,7 +34,7 @@ public class AuthService {
     public UUID refreshAuth(UUID authtoken) throws DataAccessException, BadRequestException {
         AuthData authData = checkAuth(authtoken);
         AuthDAO dao = new MemoryAuthDAO();
-        dao.deleteAuth(authData.username());
+        dao.deleteAuth(authtoken);
         return dao.createAuth(authData.username());
     }
 }
