@@ -7,20 +7,16 @@ import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.UserService;
-
 import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserServiceTests {
-
     private static UserService userService;
     private static UserData validUser;
     private static UserData invalidUser;
     private static UserDAO userDAO;
     private static AuthDAO authDAO;
     private static UUID validUUID;
-    private static AuthData validAuthData;
     @BeforeEach
     void setUp() throws DataAccessException {
         userService = new UserService();
@@ -29,7 +25,6 @@ public class UserServiceTests {
         userDAO = new MemoryUserDAO();
         authDAO = new MemoryAuthDAO();
         validUUID = UUID.randomUUID();
-        validAuthData = new AuthData(validUUID, "username");
         userDAO.clearUsers();
         authDAO.clearAuth();
     }
@@ -45,7 +40,6 @@ public class UserServiceTests {
     void addUserTwice() throws BadRequestException, DataAccessException {
         userService.addUser(validUser);
         try {
-//            assertThrows(BadRequestException.class, ()-> userService.addUser(validUser), "Expected BadRequestException");
             userService.addUser(validUser);
         } catch(Exception e) {
             String message = e.getMessage();
