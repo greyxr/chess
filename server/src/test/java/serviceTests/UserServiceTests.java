@@ -22,7 +22,7 @@ public class UserServiceTests {
     private static UUID validUUID;
     private static AuthData validAuthData;
     @BeforeEach
-    void setUp() {
+    void setUp() throws DataAccessException {
         userService = new UserService();
         validUser = new UserData("username", "password", "email@email.com");
         invalidUser = new UserData("username2", null, "email2@email.com");
@@ -30,6 +30,8 @@ public class UserServiceTests {
         authDAO = new MemoryAuthDAO();
         validUUID = UUID.randomUUID();
         validAuthData = new AuthData(validUUID, "username");
+        userDAO.clearUsers();
+        authDAO.clearAuth();
     }
 
     @Test
@@ -52,32 +54,43 @@ public class UserServiceTests {
     }
 
     @Test
-    void loginValidUser() {
-        String test = "test";
-        assertEquals("test", test);
+    void loginValidUser() throws BadRequestException, DataAccessException {
+        userService.addUser(validUser);
+        AuthData authData = userService.loginUser(validUser);
+        AuthData checkAuth = authDAO.getAuth(authData.authToken());
+        assertEquals(authData, checkAuth);
+        assertNotNull(authData);
+        assertNotNull(checkAuth);
     }
 
     @Test
     void loginInvalidUser() {
-        String test = "test";
-        assertNotEquals("test2", test);
+        try {
+            userService.addUser(validUser);
+            userService.loginUser(invalidUser);
+        } catch (BadRequestException | DataAccessException e) {
+            assertEquals("Error: unauthorized", e.getMessage());
+        }
     }
 
     @Test
-    void logoutValidUser() {
-        String test = "test";
-        assertEquals("test", test);
+    void logoutValidUser() throws BadRequestException, DataAccessException {
+        userService.addUser(validUser);
+        AuthData authData = userService.loginUser(validUser);
+        userService.logoutUser(authData);
+        assertNull(authDAO.getAuth(authData.authToken()));
+
     }
 
     @Test
-    void logoutInvalidUser() {
-        String test = "test";
-        assertNotEquals("test2", test);
+    void logoutInvalidUser() throws DataAccessException {
+        assertNull(authDAO.getAuth(validUUID));
     }
 
     @Test
-    void clearTest() {
-        String test = "test";
-        assertEquals("test", test);
+    void clearTest() throws DataAccessException, BadRequestException {
+        userService.addUser(validUser);
+        userService.clear();
+        assertNull(userDAO.getUser(validUser.username()));
     }
 }
