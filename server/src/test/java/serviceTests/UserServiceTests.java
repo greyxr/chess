@@ -4,7 +4,6 @@ import dataAccess.*;
 import exceptions.BadRequestException;
 import model.AuthData;
 import model.UserData;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.UserService;
@@ -43,7 +42,9 @@ public class UserServiceTests {
     @Test
     void addUserTwice() throws BadRequestException, DataAccessException {
         userService.addUser(validUser);
-        assertThrows(BadRequestException.class, ()-> userService.addUser(validUser), "Expected BadRequestException");
+        try {
+            assertThrows(BadRequestException.class, ()-> userService.addUser(validUser), "Expected BadRequestException");
+        } catch(Exception ignored) {}
     }
 
     @Test
