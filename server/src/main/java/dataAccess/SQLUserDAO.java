@@ -4,6 +4,9 @@ import exceptions.BadRequestException;
 import model.UserData;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
@@ -26,12 +29,14 @@ public class SQLUserDAO implements UserDAO {
     @Override
     public UserData getUser(String username) throws DataAccessException {
         UserData user = null;
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT username, password FROM users WHERE username = ?";
-            try (var ps = conn.prepareStatement(statement)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT username, password FROM users WHERE username = ?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
-                try (var rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
                         user = new UserData(rs.getString("username"), rs.getString("password"), rs.getString("email"));
+                    }
                 }
             }
         } catch (Exception e) {
@@ -42,12 +47,11 @@ public class SQLUserDAO implements UserDAO {
 
     @Override
     public void clearUsers() throws DataAccessException {
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "DELETE from users WHERE username = *";
-            try (var ps = conn.prepareStatement(statement)) {
-                try (var rs = ps.executeQuery()) {
-                    return;
-                }
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "DELETE from users WHERE username = *";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ResultSet rs = ps.executeQuery();
+                return;
             }
         } catch (Exception e) {
             throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
@@ -55,9 +59,9 @@ public class SQLUserDAO implements UserDAO {
     }
 
     private void executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (var i = 0; i < params.length; i++) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
+                for (int i = 0; i < params.length; i++) {
                     var param = params[i];
                     if (param instanceof String p) ps.setString(i + 1, p);
                     else if (param instanceof Integer p) ps.setInt(i + 1, p);
@@ -67,7 +71,7 @@ public class SQLUserDAO implements UserDAO {
                 }
                 ps.executeUpdate();
 
-                var rs = ps.getGeneratedKeys();
+                ResultSet rs = ps.getGeneratedKeys();
                 if (rs.next()) {
                     rs.getInt(1);
                 }
@@ -92,9 +96,9 @@ public class SQLUserDAO implements UserDAO {
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            for (String statement : createStatements) {
+                try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
                     preparedStatement.executeUpdate();
                 }
             }
