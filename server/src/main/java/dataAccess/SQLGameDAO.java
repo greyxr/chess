@@ -44,11 +44,11 @@ public class SQLGameDAO implements GameDAO {
 
     @Override
     public Collection<GameData> getGames() throws DataAccessException {
-        var result = new ArrayList<GameData>();
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT * FROM games";
-            try (var ps = conn.prepareStatement(statement)) {
-                try (var rs = ps.executeQuery()) {
+        Collection<GameData> result = new ArrayList<GameData>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT * FROM games";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         result.add(readGame(rs));
                     }
@@ -63,11 +63,11 @@ public class SQLGameDAO implements GameDAO {
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
         GameData result = null;
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT * FROM games WHERE game_id = ?";
-            try (var ps = conn.prepareStatement(statement)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT * FROM games WHERE game_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, gameID);
-                try (var rs = ps.executeQuery()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         result = readGame(rs);
                     }
@@ -112,9 +112,9 @@ public class SQLGameDAO implements GameDAO {
         }
     }
     private int executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (var i = 0; i < params.length; i++) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
+                for (int i = 0; i < params.length; i++) {
                     var param = params[i];
                     if (param instanceof String p) ps.setString(i + 1, p);
                     else if (param instanceof Integer p) ps.setInt(i + 1, p);
@@ -124,7 +124,7 @@ public class SQLGameDAO implements GameDAO {
                 }
                 ps.executeUpdate();
 
-                var rs = ps.getGeneratedKeys();
+                ResultSet rs = ps.getGeneratedKeys();
                 if (rs.next()) {
                     return rs.getInt(1);
                 }
@@ -152,9 +152,9 @@ public class SQLGameDAO implements GameDAO {
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            for (String statement : createStatements) {
+                try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
                     preparedStatement.executeUpdate();
                 }
             }
