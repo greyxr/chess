@@ -29,8 +29,11 @@ public class SQLAuthDAO implements AuthDAO {
 
     @Override
     public void deleteAuth(UUID authtoken) throws DataAccessException {
-        String statement = "DELETE * FROM auth WHERE authtoken = ?";
-        executeUpdate(statement, authtoken);
+        if (authtoken == null) {
+            throw new DataAccessException("Error: authtoken cannot be null");
+        }
+        String statement = "DELETE FROM auth WHERE authtoken = ?";
+        executeUpdate(statement, authtoken.toString());
 
     }
 
@@ -38,7 +41,7 @@ public class SQLAuthDAO implements AuthDAO {
     public UUID createAuth(String username) throws DataAccessException {
         String statement = "INSERT INTO auth (authtoken, username) values (?, ?)";
         UUID authtoken = UUID.randomUUID();
-        executeUpdate(statement, authtoken, username);
+        executeUpdate(statement, authtoken.toString(), username);
         return authtoken;
     }
 

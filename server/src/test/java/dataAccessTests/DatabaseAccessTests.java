@@ -3,11 +3,14 @@ package dataAccessTests;
 import chess.ChessGame;
 import dataAccess.*;
 import exceptions.BadRequestException;
+import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,18 +20,25 @@ public class DatabaseAccessTests {
     static GameData testGame;
     static GameDAO gameDAO;
 
+    static AuthDAO authDAO;
+
+    static AuthData authData;
+
     @BeforeAll
     static void setup() throws DataAccessException {
         userDAO = new SQLUserDAO();
         testUser = new UserData("test", "password", "email@email.com");
         gameDAO = new SQLGameDAO();
         testGame = new GameData(1, "white", "black", "gameName", new ChessGame());
+        authDAO = new SQLAuthDAO();
+        authData = new AuthData(UUID.randomUUID(), "user");
     }
 
     @BeforeEach
     void eachSetup() throws DataAccessException {
         userDAO.clearUsers();
         gameDAO.clearGames();
+        authDAO.clearAuth();
     }
 
     @Test
@@ -115,5 +125,59 @@ public class DatabaseAccessTests {
         assertNull(gameDAO.getGame(three));
 
         assertEquals(0, gameDAO.getGames().size());
+    }
+
+    @Test
+    void clearAuth() throws DataAccessException {
+        UUID one = authDAO.createAuth("test1");
+        UUID two = authDAO.createAuth("test2");
+        UUID three = authDAO.createAuth("test3");
+
+        authDAO.clearAuth();
+
+        assertNull(authDAO.getAuth(one));
+        assertNull(authDAO.getAuth(two));
+        assertNull(authDAO.getAuth(three));
+    }
+
+    @Test
+    void createAuth() throws DataAccessException {
+        assertEquals(UUID.class, authDAO.createAuth("user").getClass());
+    }
+
+    @Test
+    void createInvalidAuth() {
+        try {
+            authDAO.createAuth(null);
+        } catch (Exception e) {
+            assertEquals(DataAccessException.class, e.getClass());
+        }
+    }
+
+    @Test
+    void getAuth() throws DataAccessException {
+        UUID authToken = authDAO.createAuth("user");
+        assertEquals(new AuthData(authToken, "user"), authDAO.getAuth(authToken));
+    }
+
+    @Test
+    void getInvalidAuth() throws DataAccessException {
+        assertNull(authDAO.getAuth(UUID.randomUUID()));
+    }
+
+    @Test
+    void deleteAuth() throws DataAccessException {
+        UUID authToken = authDAO.createAuth("user");
+        authDAO.deleteAuth(authToken);
+        assertNull(authDAO.getAuth(authToken));
+    }
+
+    @Test
+    void deleteInvalidAuth() {
+        try {
+            authDAO.deleteAuth(null);
+        } catch (Exception e) {
+            assertEquals(DataAccessException.class, e.getClass());
+        }
     }
 }
