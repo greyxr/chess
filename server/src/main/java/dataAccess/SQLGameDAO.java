@@ -2,7 +2,6 @@ package dataAccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import model.AuthData;
 import model.GameData;
 
 import java.sql.Connection;
@@ -11,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.UUID;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
@@ -24,8 +22,14 @@ public class SQLGameDAO implements GameDAO {
 
     @Override
     public void clearGames() throws DataAccessException {
-        String statement = "DELETE * FROM games";
-        executeUpdate(statement);
+        String sql = "TRUNCATE games";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to update database: %s, %s", sql, e.getMessage()));
+        }
     }
 
     private GameData readGame(ResultSet resultSet) throws SQLException {
@@ -79,14 +83,14 @@ public class SQLGameDAO implements GameDAO {
     public void insertUser(int gameID, String username, String color) throws DataAccessException {
         String userColor = color.equalsIgnoreCase("white") ? "white_username" : "black_username";
         String sql = "UPDATE games SET " + userColor + " = ? WHERE game_id = ?";
-        executeUpdate(sql, userColor, gameID);
+        executeUpdate(sql, username, gameID);
 
     }
 
     @Override
-    public void insertGame(int gameID, String gameName) throws DataAccessException {
+    public int insertGame(String gameName) throws DataAccessException {
         String statement = "INSERT INTO games (game_id, game_name, white_username, black_username, chess_game) values (?, ?, ?, ?, ?)";
-        executeUpdate(statement, gameID, gameName, null, null, new Gson().toJson(new ChessGame()));
+        return executeUpdate(statement, null, gameName, null, null, new Gson().toJson(new ChessGame()));
     }
 
     @Override
@@ -140,8 +144,8 @@ public class SQLGameDAO implements GameDAO {
               `white_username` TEXT DEFAULT NULL,
               `black_username` TEXT DEFAULT NULL,
               `chess_game` TEXT NOT NULL,
-              PRIMARY KEY (`game_id`),
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+              PRIMARY KEY (`game_id`)
+            )
             """
     };
 

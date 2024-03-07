@@ -37,7 +37,7 @@ public class GameServiceTests {
 
     @Test
     void testClear() throws DataAccessException {
-        gameDAO.insertGame(validGame.gameID(), validGame.gameName());
+        gameDAO.insertGame(validGame.gameName());
         gameService.clearGames();
         assertNull(gameDAO.getGame(validGame.gameID()));
     }
@@ -52,9 +52,9 @@ public class GameServiceTests {
     void listMultipleGames() throws DataAccessException {
         ArrayList<GameData> expected = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            GameData currentGame = new GameData(gameDAO.getBiggestGameId() + 1, null, null, "Game " + i + 1, new ChessGame());
+            int gameID = gameDAO.insertGame("Game " + i + 1);
+            GameData currentGame = new GameData(gameID, null, null, "Game " + i + 1, new ChessGame());
             expected.add(currentGame);
-            gameDAO.insertGame(gameDAO.getBiggestGameId() + 1, "Game " + i + 1);
         }
         assertEquals(expected, gameService.listGames());
 
@@ -81,7 +81,7 @@ public class GameServiceTests {
 
     @Test
     void joinValidGame() throws DataAccessException, BadRequestException {
-        gameDAO.insertGame(validGame.gameID(), validGame.gameName());
+        gameDAO.insertGame(validGame.gameName());
         userDAO.createUser(validUser);
         UUID authtoken = authDAO.createAuth(validUser.username());
 
@@ -92,7 +92,7 @@ public class GameServiceTests {
 
     @Test
     void joinInvalidGameID() throws DataAccessException, BadRequestException {
-        gameDAO.insertGame(validGame.gameID(), validGame.gameName());
+        gameDAO.insertGame(validGame.gameName());
         userDAO.createUser(validUser);
         UUID authtoken = authDAO.createAuth(validUser.username());
 
@@ -105,7 +105,7 @@ public class GameServiceTests {
 
     @Test
     void joinGameAlreadyTaken() throws DataAccessException, BadRequestException {
-        gameDAO.insertGame(validGame.gameID(), validGame.gameName());
+        gameDAO.insertGame(validGame.gameName());
         UUID authtoken = authDAO.createAuth(validUser.username());
         UUID authtoken2 = authDAO.createAuth("user2");
         gameService.joinGame(new JoinGameRequest("WHITE", validGame.gameID()), authtoken);

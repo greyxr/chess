@@ -17,8 +17,14 @@ public class SQLAuthDAO implements AuthDAO {
 
     @Override
     public void clearAuth() throws DataAccessException {
-        String statement = "DELETE * FROM auth";
-        executeUpdate(statement);
+        String sql = "TRUNCATE auth";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to update database: %s, %s", sql, e.getMessage()));
+        }
     }
 
     @Override
@@ -76,10 +82,10 @@ public class SQLAuthDAO implements AuthDAO {
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS auth (
-              `authtoken` TEXT NOT NULL,
+              `authtoken` varchar(256) NOT NULL,
               `username` TEXT NOT NULL,
-              PRIMARY KEY (`authtoken`),
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+              PRIMARY KEY (`authtoken`)
+            )
             """
     };
 

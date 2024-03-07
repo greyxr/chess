@@ -13,7 +13,7 @@ public interface GameDAO {
 
     void insertUser(int gameID, String username, String color) throws DataAccessException;
 
-    void insertGame(int gameID, String gameName) throws DataAccessException;
+    int insertGame(String gameName) throws DataAccessException;
 
     int getBiggestGameId() throws DataAccessException;
 

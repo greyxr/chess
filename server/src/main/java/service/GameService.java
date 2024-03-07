@@ -20,8 +20,7 @@ public class GameService {
 
     public GameData createGame(GameData gameData) throws DataAccessException {
         GameDAO dao = new SQLGameDAO();
-        int gameID = dao.getBiggestGameId() + 1;
-        dao.insertGame(gameID, gameData.gameName());
+        int gameID = dao.insertGame(gameData.gameName());
         return new GameData(gameID, null, null, null, null);
     }
 

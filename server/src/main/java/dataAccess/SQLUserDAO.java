@@ -30,7 +30,7 @@ public class SQLUserDAO implements UserDAO {
     public UserData getUser(String username) throws DataAccessException {
         UserData user = null;
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT username, password FROM users WHERE username = ?";
+            String statement = "SELECT * FROM users WHERE username = ?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -47,14 +47,13 @@ public class SQLUserDAO implements UserDAO {
 
     @Override
     public void clearUsers() throws DataAccessException {
+        String sql = "TRUNCATE users";
         try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "DELETE from users WHERE username = *";
-            try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                ResultSet rs = ps.executeQuery();
-                return;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.executeUpdate();
             }
-        } catch (Exception e) {
-            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to update database: %s, %s", sql, e.getMessage()));
         }
     }
 
@@ -85,11 +84,11 @@ public class SQLUserDAO implements UserDAO {
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS users (
-              `username` TEXT NOT NULL,
+              `username` varchar(256) NOT NULL,
               `password` TEXT NOT NULL,
               `email` TEXT DEFAULT NULL,
-              PRIMARY KEY (`username`),
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+              PRIMARY KEY (`username`)
+            )
             """
     };
 
