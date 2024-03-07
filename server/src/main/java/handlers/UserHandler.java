@@ -2,8 +2,6 @@ package handlers;
 import dataAccess.DataAccessException;
 import exceptions.BadRequestException;
 import model.AuthData;
-import model.RegisterUserResponse;
-import model.ErrorResponse;
 import model.UserData;
 import service.AuthService;
 import service.GameService;

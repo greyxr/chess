@@ -25,10 +25,10 @@ public class GameServiceTests {
     @BeforeEach
     void setUp() throws DataAccessException {
         validUser = new UserData("username", "password", "email@email.com");
-        userDAO = new MemoryUserDAO();
-        authDAO = new MemoryAuthDAO();
+        userDAO = new SQLUserDAO();
+        authDAO = new SQLAuthDAO();
         gameService = new GameService();
-        gameDAO = new MemoryGameDAO();
+        gameDAO = new SQLGameDAO();
         validGame = new GameData(1, "white", "black", "testgame", new ChessGame());
         userDAO.clearUsers();
         authDAO.clearAuth();
@@ -72,9 +72,9 @@ public class GameServiceTests {
     void createMultipleGames() throws DataAccessException {
         ArrayList<GameData> expected = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            GameData currentGame = new GameData(gameDAO.getBiggestGameId() + 1, null, null, "Game " + i + 1, new ChessGame());
-            expected.add(currentGame);
-            gameService.createGame(currentGame);
+            GameData currentGame = new GameData(1, null, null, "Game " + i + 1, new ChessGame());
+            GameData createdGame = gameService.createGame(currentGame);
+            expected.add(new GameData(createdGame.gameID(), currentGame.whiteUsername(), currentGame.blackUsername(), currentGame.gameName(), currentGame.game()));
         }
         assertEquals(expected, gameDAO.getGames());
     }

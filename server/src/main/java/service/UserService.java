@@ -12,7 +12,11 @@ import java.util.UUID;
 
 public class UserService {
     public AuthData addUser(UserData user) throws DataAccessException, BadRequestException {
-        UserData createdUser = new SQLUserDAO().createUser(user);
+        UserDAO userDAO = new SQLUserDAO();
+        if (userDAO.getUser(user.username()) != null) {
+            throw new BadRequestException(403, "Error: User already exists");
+        }
+        UserData createdUser = userDAO.createUser(user);
         UUID authtoken = new SQLAuthDAO().createAuth(createdUser.username());
         return new AuthData(authtoken, createdUser.username());
     }

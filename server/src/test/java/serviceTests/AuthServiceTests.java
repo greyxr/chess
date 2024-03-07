@@ -15,7 +15,7 @@ public class AuthServiceTests {
 
     @BeforeEach
     void setUp() throws DataAccessException {
-        authDAO = new MemoryAuthDAO();
+        authDAO = new SQLAuthDAO();
         authService = new AuthService();
         authDAO.clearAuth();
     }
