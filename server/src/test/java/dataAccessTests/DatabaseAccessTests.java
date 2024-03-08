@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -96,6 +97,13 @@ public class DatabaseAccessTests {
         int gameID = gameDAO.insertGame(testGame.gameName());
         gameDAO.insertUser(gameID, "testUser", "white");
         assertEquals("testUser", gameDAO.getGame(gameID).whiteUsername());
+    }
+
+    @Test
+    void testGetSingleGame() throws DataAccessException {
+        gameDAO.insertGame("game1");
+        ArrayList<GameData> results = (ArrayList<GameData>) gameDAO.getGames();
+        assertEquals("game1", results.getFirst().gameName());
     }
 
     @Test
