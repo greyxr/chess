@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public class UserService {
     public AuthData addUser(UserData user) throws DataAccessException, BadRequestException {
-        UserData createdUser = new MemoryUserDAO().createUser(user);
+        UserData createdUser = new SQLUserDAO().createUser(user);
         UUID authtoken = new MemoryAuthDAO().createAuth(createdUser.username());
         return new AuthData(authtoken, createdUser.username());
     }
