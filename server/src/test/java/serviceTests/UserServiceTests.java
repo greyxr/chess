@@ -6,6 +6,7 @@ import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import service.UserService;
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,8 +23,8 @@ public class UserServiceTests {
         userService = new UserService();
         validUser = new UserData("username", "password", "email@email.com");
         invalidUser = new UserData("username2", null, "email2@email.com");
-        userDAO = new MemoryUserDAO();
-        authDAO = new MemoryAuthDAO();
+        userDAO = new SQLUserDAO();
+        authDAO = new SQLAuthDAO();
         validUUID = UUID.randomUUID();
         userDAO.clearUsers();
         authDAO.clearAuth();
@@ -32,7 +33,10 @@ public class UserServiceTests {
     @Test
     void addValidUser() throws BadRequestException, DataAccessException {
         AuthData result = userService.addUser(validUser);
-        assertEquals(userDAO.getUser(validUser.username()), validUser);
+        UserData user = userDAO.getUser(validUser.username());
+        assertEquals(user.username(), validUser.username());
+        assertTrue(BCrypt.checkpw(validUser.password(), user.password()));
+
         assertNotNull(authDAO.getAuth(result.authToken()));
     }
 

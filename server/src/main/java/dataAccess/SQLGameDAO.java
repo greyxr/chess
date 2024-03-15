@@ -4,6 +4,8 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,8 +22,14 @@ public class SQLGameDAO implements GameDAO {
 
     @Override
     public void clearGames() throws DataAccessException {
-        String statement = "DELETE * FROM games";
-        executeUpdate(statement);
+        String sql = "TRUNCATE games";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to update database: %s, %s", sql, e.getMessage()));
+        }
     }
 
     private GameData readGame(ResultSet resultSet) throws SQLException {
@@ -36,11 +44,11 @@ public class SQLGameDAO implements GameDAO {
 
     @Override
     public Collection<GameData> getGames() throws DataAccessException {
-        var result = new ArrayList<GameData>();
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT * FROM games";
-            try (var ps = conn.prepareStatement(statement)) {
-                try (var rs = ps.executeQuery()) {
+        Collection<GameData> result = new ArrayList<GameData>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT * FROM games";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         result.add(readGame(rs));
                     }
@@ -55,12 +63,14 @@ public class SQLGameDAO implements GameDAO {
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
         GameData result = null;
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT * FROM games WHERE game_id = ?";
-            try (var ps = conn.prepareStatement(statement)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT * FROM games WHERE game_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, gameID);
-                try (var rs = ps.executeQuery()) {
-                    result = readGame(rs);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        result = readGame(rs);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -71,22 +81,40 @@ public class SQLGameDAO implements GameDAO {
 
     @Override
     public void insertUser(int gameID, String username, String color) throws DataAccessException {
+        String userColor = color.equalsIgnoreCase("white") ? "white_username" : "black_username";
+        String sql = "UPDATE games SET " + userColor + " = ? WHERE game_id = ?";
+        executeUpdate(sql, username, gameID);
 
     }
 
     @Override
-    public void insertGame(int gameID, String gameName) throws DataAccessException {
-
+    public int insertGame(String gameName) throws DataAccessException {
+        String statement = "INSERT INTO games (game_id, game_name, white_username, black_username, chess_game) values (?, ?, ?, ?, ?)";
+        return executeUpdate(statement, null, gameName, null, null, new Gson().toJson(new ChessGame()));
     }
 
     @Override
     public int getBiggestGameId() throws DataAccessException {
-        return 0;
+        String sql = "SELECT max(game_id) FROM games";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs == null) {
+                        return -1;
+                    }
+                    rs.first();
+                    return rs.getInt(1);
+
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
     }
     private int executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (var i = 0; i < params.length; i++) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
+                for (int i = 0; i < params.length; i++) {
                     var param = params[i];
                     if (param instanceof String p) ps.setString(i + 1, p);
                     else if (param instanceof Integer p) ps.setInt(i + 1, p);
@@ -96,7 +124,7 @@ public class SQLGameDAO implements GameDAO {
                 }
                 ps.executeUpdate();
 
-                var rs = ps.getGeneratedKeys();
+                ResultSet rs = ps.getGeneratedKeys();
                 if (rs.next()) {
                     return rs.getInt(1);
                 }
@@ -113,20 +141,20 @@ public class SQLGameDAO implements GameDAO {
             CREATE TABLE IF NOT EXISTS games (
               `game_id` int NOT NULL AUTO_INCREMENT,
               `game_name` TEXT NOT NULL,
-              `white_username` TEXT,
-              `black_username` TEXT,
+              `white_username` TEXT DEFAULT NULL,
+              `black_username` TEXT DEFAULT NULL,
               `chess_game` TEXT NOT NULL,
-              PRIMARY KEY (`game_id`),
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+              PRIMARY KEY (`game_id`)
+            )
             """
     };
 
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            for (String statement : createStatements) {
+                try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
                     preparedStatement.executeUpdate();
                 }
             }
