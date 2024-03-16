@@ -231,4 +231,30 @@ public class ChessGame {
     public ChessBoard getBoard() {
         return this.board;
     }
+
+    public String[][] convertToMatrix() {
+        ChessBoard board = getBoard();
+        int boardDim = board.boardDim;
+        String[][] matrixBoard = new String[boardDim][boardDim];
+        for (int i = 0; i < boardDim; i++) {
+            for (int j = 0; j < boardDim; j++) {
+                matrixBoard[i][j] = chessPieceToString(board.getPiece(new ChessPosition(i, j)));
+            }
+        }
+        return matrixBoard;
+    }
+
+    public String chessPieceToString(ChessPiece piece) {
+        if (piece == null) {
+            return null;
+        }
+        return switch (piece.getPieceType()) {
+            case KING -> "K";
+            case QUEEN -> "Q";
+            case BISHOP -> "B";
+            case KNIGHT -> "N";
+            case ROOK -> "R";
+            case PAWN -> "p";
+        };
+    }
 }

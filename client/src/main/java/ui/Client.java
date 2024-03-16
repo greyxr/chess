@@ -1,5 +1,7 @@
 package ui;
 
+import chess.ChessGame;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -100,7 +102,9 @@ public class Client {
     }
 
     void printChessBoard() {
-        ChessBoard.main(new String[]{"asdf"});
+        ChessGame chessGame = new ChessGame();
+        chessGame.board.resetBoard();
+        ChessBoard.main(chessGame.convertToMatrix());
     }
 
     void login() {
