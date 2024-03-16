@@ -57,6 +57,7 @@ public class Client {
             case "2":
                 break;
             case "3":
+                printChessBoard();
                 break;
             case "4":
                 break;
@@ -76,6 +77,7 @@ public class Client {
             case "help":
                 help();
             case "1":
+                login();
                 break;
             case "2":
                 break;
@@ -95,5 +97,13 @@ public class Client {
 
     void print(String input) {
         System.out.println(input);
+    }
+
+    void printChessBoard() {
+        ChessBoard.main(new String[]{"asdf"});
+    }
+
+    void login() {
+        loggedIn = true;
     }
 }
