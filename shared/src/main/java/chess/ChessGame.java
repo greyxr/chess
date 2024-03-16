@@ -232,13 +232,17 @@ public class ChessGame {
         return this.board;
     }
 
-    public String[][] convertToMatrix() {
+    public String[][] convertToMatrix(String color) {
+        ChessGame.TeamColor teamColor = (color.equalsIgnoreCase("white") ? TeamColor.WHITE : TeamColor.BLACK);
         ChessBoard board = getBoard();
         int boardDim = board.boardDim;
         String[][] matrixBoard = new String[boardDim][boardDim];
-        for (int i = 0; i < boardDim; i++) {
-            for (int j = 0; j < boardDim; j++) {
-                matrixBoard[i][j] = chessPieceToString(board.getPiece(new ChessPosition(i, j)));
+        for (int i = 1; i < boardDim; i++) {
+            for (int j = 1; j < boardDim; j++) {
+                ChessPiece potentialPiece = board.getPiece(new ChessPosition(i, j));
+                if (potentialPiece != null && (potentialPiece.pieceColor == teamColor)) {
+                    matrixBoard[i - 1][j - 1] = chessPieceToString(potentialPiece);
+                }
             }
         }
         return matrixBoard;

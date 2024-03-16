@@ -104,7 +104,7 @@ public class Client {
     void printChessBoard() {
         ChessGame chessGame = new ChessGame();
         chessGame.board.resetBoard();
-        ChessBoard.main(chessGame.convertToMatrix());
+        ChessBoard.main(chessGame.convertToMatrix("white"), chessGame.convertToMatrix("black"));
     }
 
     void login() {
