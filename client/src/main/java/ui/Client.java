@@ -1,6 +1,7 @@
 package ui;
 
 import chess.ChessGame;
+import server.ServerFacade;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,7 +9,13 @@ import java.io.InputStreamReader;
 import java.util.Objects;
 
 public class Client {
+
+    private ServerFacade serverFacade;
     private boolean loggedIn = false;
+
+    public Client(int port) {
+        serverFacade = new ServerFacade(port);
+    }
     public void main() throws IOException {
         print("CS 240 Chess Server.");
         while(true) {
@@ -57,9 +64,10 @@ public class Client {
             case "1":
                 break;
             case "2":
+                printChessBoard();
                 break;
             case "3":
-                printChessBoard();
+                listGames();
                 break;
             case "4":
                 break;
@@ -109,5 +117,9 @@ public class Client {
 
     void login() {
         loggedIn = true;
+    }
+
+    void listGames() {
+        serverFacade.getGames();
     }
 }
