@@ -3,6 +3,7 @@ package server;
 import model.GameData;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -18,25 +19,23 @@ public class ServerFacade {
     }
 
     public Collection<GameData> getGames() {
-        try {
-//            URL url = new URL(ServerFacade.url + "/games");
-//            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-//            httpURLConnection.setRequestMethod("GET");
-//            httpURLConnection.setDoOutput(true);
-//            httpURLConnection.connect();
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://" + ServerFacade.url + "/game")).GET().build();
-            CompletableFuture<HttpResponse<String>> responseFuture = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
-            // Handle response asynchronously
-            responseFuture.thenAccept(response -> {
-                        // Print response status code
-                        System.out.println("Response Code: " + response.statusCode());
-                        System.out.println(response.statusCode());
-                System.out.println(response.body());
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        ServerCalls serverCalls = new ServerCalls("http://localhost:8080");
+        serverCalls.getGames();
         return null;
+//        try {
+//            var url = new URL("http://localhost:8080/game");
+//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//            conn.setRequestMethod("GET");
+//            conn.setDoOutput(true);
+//            conn.connect();
+//            try (InputStream respBody = conn.getInputStream()) {
+//                byte[] bytes = new byte[respBody.available()];
+//                respBody.read(bytes);
+//                System.out.println(new String(bytes));
+//            }
+//        } catch (Exception ex) {
+//            System.out.printf("ERROR: %s\n", ex);
+//        }
+//        return null;
     }
 }

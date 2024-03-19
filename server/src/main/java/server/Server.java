@@ -28,7 +28,7 @@ public class Server {
         before("/game", (request, response) -> {
             try {
                 String checkAuth = request.headers("Authorization");
-                if (checkAuth.length() != 36) {
+                if ((checkAuth == null) || (checkAuth.length() != 36)) {
                     throw new BadRequestException(401, "Error: unauthorized");
                 }
                 new AuthService().checkAuth(UUID.fromString(request.headers("Authorization")));
