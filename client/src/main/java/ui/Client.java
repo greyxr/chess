@@ -2,13 +2,14 @@ package ui;
 
 import chess.ChessGame;
 import exceptions.ServerError;
-import model.AuthData;
-import model.UserData;
+import model.*;
 import server.ServerFacade;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -23,7 +24,7 @@ public class Client {
         serverFacade = new ServerFacade(port);
     }
     public void main() throws IOException {
-        print("CS 240 Chess Server.");
+        print("CS 240 Chess Server.\nType a number to get started, or help for help.\n");
         while(true) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             if (authToken != null) {
@@ -43,14 +44,14 @@ public class Client {
     }
 
     void printLoggedOutMenu() {
-        System.out.println("Type a number to get started, or help for help.\nOptions:");
+        System.out.println("Options:");
         System.out.println("1 -- Register");
         System.out.println("2 -- Login");
         System.out.println("3 -- Quit\n");
     }
 
     void printLoggedInMenu() {
-        System.out.println("Type a number to get started, or help for help.\nOptions:");
+        System.out.println("Options:");
         System.out.println("1 -- Logout");
         System.out.println("2 -- Create Game");
         System.out.println("3 -- List Games");
@@ -141,11 +142,55 @@ public class Client {
         }
     }
 
+    void logout() {
+        try {
+            serverFacade.sendLogoutRequest(authToken);
+            authToken = null;
+        } catch (ServerError e) {
+            print(e.message());
+        }
+    }
+
     void login() {
-        serverFacade.sendLoginRequest();
+        try {
+            print("Please enter your username:");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            String username = reader.readLine();
+            print("Please enter your password:");
+            String password = reader.readLine();
+            AuthData result = serverFacade.sendLoginRequest(new UserData(username, password, null));
+            authToken = result.authToken();
+
+            print("Welcome, " + username);
+        } catch (ServerError e) {
+            print(e.message());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    void printGames(ListGamesResponse games) {
+        if (games == null) {
+            print("No active games to display.");
+            return;
+        }
+
+        print("===================================");
+        for (GameData game : games.games()) {
+            print("Game Name: " + game.gameName());
+            print("   Game ID: " + game.gameID());
+            print("   White Username: " + game.whiteUsername());
+            print("   Black Username: " + game.blackUsername());
+            print("---------------------------------------");
+        }
     }
 
     void listGames() {
-        serverFacade.getGames();
+        try {
+            ListGamesResponse games = serverFacade.getGames(authToken);
+            printGames(games);
+        } catch (ServerError e) {
+            print(e.message());
+        }
     }
 }

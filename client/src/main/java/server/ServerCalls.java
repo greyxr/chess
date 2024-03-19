@@ -2,10 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import exceptions.ServerError;
-import model.AuthData;
-import model.ErrorResponse;
-import model.GameArray;
-import model.UserData;
+import model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +10,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.UUID;
 
 public class ServerCalls {
     private static String url;
@@ -21,24 +20,36 @@ public class ServerCalls {
         ServerCalls.url = url;
     }
 
-    public Object getGames() {
+    public ListGamesResponse getGames(UUID authtoken) throws ServerError {
         try {
             var method = "GET";
             var body = "";
-            HttpURLConnection http = sendRequest(ServerCalls.url + "/game", method, body);
-            Object result = receiveResponse(http, GameArray.class);
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/game", method, body, authtoken);
+            ListGamesResponse result = (ListGamesResponse) receiveResponse(http, ListGamesResponse.class);
             return  result;
         } catch (Exception e) {
-            System.out.print(e.getMessage());
-            return null;
+           throw new ServerError(500, e.getMessage());
+        }
+    }
+
+    public void logoutRequest(UUID authToken) throws ServerError {
+        try {
+            var method = "DELETE";
+            String body = "";
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/session", method, body, authToken);
+            Object result = receiveResponse(http, AuthData.class);
+            // If object isn't an authtoken, it won't get here
+        } catch (ServerError | URISyntaxException | IOException e) {
+            throw new ServerError(500, e.getMessage());
         }
     }
 
     public AuthData loginRequest(UserData userData) throws ServerError {
         try {
             var method = "POST";
-            HttpURLConnection http = sendRequest(ServerCalls.url + "/session", method, new Gson().toJson(userData));
-            Object result = receiveResponse(http, String.class);
+            UUID auth = null;
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/session", method, new Gson().toJson(userData), auth);
+            Object result = receiveResponse(http, AuthData.class);
             // If object isn't an authtoken, it won't get here
             return (AuthData) result;
         } catch (ServerError | URISyntaxException | IOException e) {
@@ -49,7 +60,8 @@ public class ServerCalls {
     public AuthData registerRequest(UserData userData) throws ServerError {
         try {
             var method = "POST";
-            HttpURLConnection http = sendRequest(ServerCalls.url + "/user", method, new Gson().toJson(userData));
+            UUID auth = null;
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/user", method, new Gson().toJson(userData), auth);
             Object result = receiveResponse(http, AuthData.class);
             // If object isn't an authtoken, it won't get here
             return (AuthData) result;
@@ -57,15 +69,15 @@ public class ServerCalls {
             throw new ServerError(500, e.getMessage());
         }
     }
-
-
-        private static HttpURLConnection sendRequest(String url, String method, String body) throws URISyntaxException, IOException, IOException {
+        private static HttpURLConnection sendRequest(String url, String method, String body, UUID auth) throws URISyntaxException, IOException, IOException {
             URI uri = new URI(url);
             HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
             http.setRequestMethod(method);
+            if (auth != null) {
+                http.setRequestProperty("Authorization", auth.toString());
+            }
             writeRequestBody(body, http);
             http.connect();
-            System.out.printf("= Request =========\n[%s] %s\n\n%s\n\n", method, url, body);
             return http;
         }
 
@@ -86,7 +98,6 @@ public class ServerCalls {
             } else {
                 throw new ServerError(statusCode, statusMessage);
             }
-            //System.out.printf("= Response =========\n[%d] %s\n\n%s\n\n", statusCode, statusMessage, responseBody);
         }
 
         private static <T> Object readResponseBody(HttpURLConnection http, Class<T> tClass) throws IOException {
