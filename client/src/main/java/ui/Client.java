@@ -70,8 +70,10 @@ public class Client {
             case "help":
                 help();
             case "1":
+                logout();
                 break;
             case "2":
+                createGame();
                 break;
             case "3":
                 listGames();
@@ -204,6 +206,23 @@ public class Client {
             String color = reader.readLine();
             currentGames = serverFacade.sendJoinRequest(gameNumber, color, authToken);
             printChessBoard(currentGames.get(gameNumber - 1).game());
+        } catch (ServerError e) {
+            print(e.message());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (NumberFormatException e) {
+            print("Please enter a valid game number.");
+            joinGame();
+        }
+    }
+
+    void createGame() {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            print("Game name?");
+            String gameName = reader.readLine();
+            GameData gameData = serverFacade.sendCreateGameRequest(new GameName(gameName), authToken);
+            print("Created game " + gameName + " with ID " + gameData.gameID());
         } catch (ServerError e) {
             print(e.message());
         } catch (IOException e) {

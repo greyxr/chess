@@ -42,6 +42,16 @@ public class ServerCalls {
         }
     }
 
+    public GameData createGameRequest(GameName newGame, UUID authToken) throws ServerError {
+        try {
+            var method = "POST";
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/game", method, new Gson().toJson(newGame), authToken);
+            return (GameData) receiveResponse(http, GameData.class);
+        } catch (Exception e) {
+            throw new ServerError(500, e.getMessage());
+        }
+    }
+
     public void logoutRequest(UUID authToken) throws ServerError {
         try {
             var method = "DELETE";

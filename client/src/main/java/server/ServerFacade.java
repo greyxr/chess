@@ -50,4 +50,8 @@ public class ServerFacade {
     public void sendLogoutRequest(UUID authToken) throws ServerError {
         serverCalls.logoutRequest(authToken);
     }
+
+    public GameData sendCreateGameRequest(GameName newGame, UUID authToken) throws ServerError {
+        return serverCalls.createGameRequest(newGame, authToken);
+    }
 }
