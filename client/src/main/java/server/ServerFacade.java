@@ -1,6 +1,9 @@
 package server;
 
+import exceptions.ServerError;
+import model.AuthData;
 import model.GameData;
+import model.UserData;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,13 +16,15 @@ import java.util.concurrent.CompletableFuture;
 
 public class ServerFacade {
     static String url;
+    static ServerCalls serverCalls;
     public ServerFacade(int port) {
         String url = "localhost:" + port;
         ServerFacade.url = url;
+        serverCalls = new ServerCalls("http://localhost:8080");
+
     }
 
     public Collection<GameData> getGames() {
-        ServerCalls serverCalls = new ServerCalls("http://localhost:8080");
         serverCalls.getGames();
         return null;
 //        try {
@@ -37,5 +42,19 @@ public class ServerFacade {
 //            System.out.printf("ERROR: %s\n", ex);
 //        }
 //        return null;
+    }
+
+    public String sendLoginRequest() {
+        try {
+            var result = serverCalls.loginRequest(new UserData("Bob", "password", null));
+        } catch (ServerError e) {
+            //swallow it
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public AuthData sendRegisterRequest(UserData userData) throws ServerError {
+            return serverCalls.registerRequest(userData);
     }
 }

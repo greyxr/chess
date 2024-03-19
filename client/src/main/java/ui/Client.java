@@ -1,17 +1,23 @@
 package ui;
 
 import chess.ChessGame;
+import exceptions.ServerError;
+import model.AuthData;
+import model.UserData;
 import server.ServerFacade;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Client {
 
     private ServerFacade serverFacade;
     private boolean loggedIn = false;
+
+    private UUID authToken = null;
 
     public Client(int port) {
         serverFacade = new ServerFacade(port);
@@ -20,7 +26,7 @@ public class Client {
         print("CS 240 Chess Server.");
         while(true) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            if (loggedIn) {
+            if (authToken != null) {
                 printLoggedInMenu();
             } else {
                 printLoggedOutMenu();
@@ -28,7 +34,7 @@ public class Client {
 
             String input = reader.readLine();
 
-            if (loggedIn) {
+            if (authToken != null) {
                 handleLoggedInInput(input);
             } else {
                 handleLoggedOutInput(input);
@@ -87,9 +93,10 @@ public class Client {
             case "help":
                 help();
             case "1":
-                login();
+                register();
                 break;
             case "2":
+                login();
                 break;
             case "3":
             case "q":
@@ -115,8 +122,27 @@ public class Client {
         ChessBoard.main(chessGame.convertToMatrix("white"), chessGame.convertToMatrix("black"));
     }
 
+    void register() {
+        try {
+            print("Please enter your username:");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            String username = reader.readLine();
+            print("Please enter your password:");
+            String password = reader.readLine();
+            print("Please enter your email:");
+            String email = reader.readLine();
+            AuthData result = serverFacade.sendRegisterRequest(new UserData(username, password, email));
+            authToken = result.authToken();
+            print("Welcome, " + username);
+        } catch (ServerError e) {
+            print(e.message());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     void login() {
-        loggedIn = true;
+        serverFacade.sendLoginRequest();
     }
 
     void listGames() {

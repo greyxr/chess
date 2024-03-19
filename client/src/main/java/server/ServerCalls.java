@@ -1,8 +1,11 @@
 package server;
 
 import com.google.gson.Gson;
+import exceptions.ServerError;
+import model.AuthData;
 import model.ErrorResponse;
 import model.GameArray;
+import model.UserData;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,16 +21,41 @@ public class ServerCalls {
         ServerCalls.url = url;
     }
 
-    public GameArray getGames() {
+    public Object getGames() {
         try {
             var method = "GET";
             var body = "";
             HttpURLConnection http = sendRequest(ServerCalls.url + "/game", method, body);
-            receiveResponse(http, new GameArray(null));
+            Object result = receiveResponse(http, GameArray.class);
+            return  result;
         } catch (Exception e) {
             System.out.print(e.getMessage());
+            return null;
         }
-        return null;
+    }
+
+    public AuthData loginRequest(UserData userData) throws ServerError {
+        try {
+            var method = "POST";
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/session", method, new Gson().toJson(userData));
+            Object result = receiveResponse(http, String.class);
+            // If object isn't an authtoken, it won't get here
+            return (AuthData) result;
+        } catch (ServerError | URISyntaxException | IOException e) {
+            throw new ServerError(500, e.getMessage());
+        }
+    }
+
+    public AuthData registerRequest(UserData userData) throws ServerError {
+        try {
+            var method = "POST";
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/user", method, new Gson().toJson(userData));
+            Object result = receiveResponse(http, AuthData.class);
+            // If object isn't an authtoken, it won't get here
+            return (AuthData) result;
+        } catch (ServerError | URISyntaxException | IOException e) {
+            throw new ServerError(500, e.getMessage());
+        }
     }
 
 
@@ -50,22 +78,22 @@ public class ServerCalls {
             }
         }
 
-        private static Object receiveResponse(HttpURLConnection http, Object type) throws IOException {
+        private static <T> Object receiveResponse(HttpURLConnection http, Class<T> tclass) throws IOException, ServerError {
             var statusCode = http.getResponseCode();
             var statusMessage = http.getResponseMessage();
             if (statusCode == 200 || statusCode == 201) {
-                return readResponseBody(http, type);
+                return readResponseBody(http, tclass);
             } else {
-                return new ErrorResponse(statusMessage);
+                throw new ServerError(statusCode, statusMessage);
             }
             //System.out.printf("= Response =========\n[%d] %s\n\n%s\n\n", statusCode, statusMessage, responseBody);
         }
 
-        private static Object readResponseBody(HttpURLConnection http, Object type) throws IOException {
+        private static <T> Object readResponseBody(HttpURLConnection http, Class<T> tClass) throws IOException {
             Object responseBody = "";
             try (InputStream respBody = http.getInputStream()) {
                 InputStreamReader inputStreamReader = new InputStreamReader(respBody);
-                responseBody = new Gson().fromJson(inputStreamReader, type.getClass());
+                responseBody = new Gson().fromJson(inputStreamReader, tClass);
             }
             return responseBody;
         }
