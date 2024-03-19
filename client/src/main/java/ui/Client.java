@@ -19,6 +19,7 @@ public class Client {
     private boolean loggedIn = false;
 
     private UUID authToken = null;
+    private ArrayList<GameData> currentGames = new ArrayList<>();
 
     public Client(int port) {
         serverFacade = new ServerFacade(port);
@@ -169,15 +170,16 @@ public class Client {
         }
     }
 
-    void printGames(ListGamesResponse games) {
-        if (games == null) {
+    void printGames() {
+        if (currentGames.isEmpty()) {
             print("No active games to display.");
             return;
         }
 
         print("===================================");
-        for (GameData game : games.games()) {
-            print("Game Name: " + game.gameName());
+        for (int i = 0; i < currentGames.size(); i++) {
+            GameData game = currentGames.get(i);
+            print("(" + ((int) i + 1) + ") Game Name: " + game.gameName());
             print("   Game ID: " + game.gameID());
             print("   White Username: " + game.whiteUsername());
             print("   Black Username: " + game.blackUsername());
@@ -188,7 +190,9 @@ public class Client {
     void listGames() {
         try {
             ListGamesResponse games = serverFacade.getGames(authToken);
-            printGames(games);
+            currentGames.clear();
+            currentGames.addAll(games.games());
+            printGames();
         } catch (ServerError e) {
             print(e.message());
         }
