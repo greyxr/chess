@@ -32,6 +32,16 @@ public class ServerCalls {
         }
     }
 
+    public void joinGame(JoinGameRequest request, UUID authtoken) throws ServerError {
+        try {
+            var method = "PUT";
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/game", method, new Gson().toJson(request), authtoken);
+            receiveResponse(http, String.class);
+        } catch (Exception e) {
+            throw new ServerError(500, e.getMessage());
+        }
+    }
+
     public void logoutRequest(UUID authToken) throws ServerError {
         try {
             var method = "DELETE";

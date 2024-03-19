@@ -72,12 +72,12 @@ public class Client {
             case "1":
                 break;
             case "2":
-                printChessBoard();
                 break;
             case "3":
                 listGames();
                 break;
             case "4":
+                joinGame();
                 break;
             case "5":
                 break;
@@ -118,9 +118,7 @@ public class Client {
         System.out.println(input);
     }
 
-    void printChessBoard() {
-        ChessGame chessGame = new ChessGame();
-        chessGame.board.resetBoard();
+    void printChessBoard(ChessGame chessGame) {
         ChessBoard.main(chessGame.convertToMatrix("white"), chessGame.convertToMatrix("black"));
     }
 
@@ -161,7 +159,6 @@ public class Client {
             String password = reader.readLine();
             AuthData result = serverFacade.sendLoginRequest(new UserData(username, password, null));
             authToken = result.authToken();
-
             print("Welcome, " + username);
         } catch (ServerError e) {
             print(e.message());
@@ -195,6 +192,22 @@ public class Client {
             printGames();
         } catch (ServerError e) {
             print(e.message());
+        }
+    }
+
+    void joinGame() {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            print("Game number?");
+            int gameNumber = Integer.parseInt(reader.readLine());
+            print("Which color? black/white");
+            String color = reader.readLine();
+            currentGames = serverFacade.sendJoinRequest(gameNumber, color, authToken);
+            printChessBoard(currentGames.get(gameNumber - 1).game());
+        } catch (ServerError e) {
+            print(e.message());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
