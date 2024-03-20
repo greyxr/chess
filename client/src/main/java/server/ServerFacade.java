@@ -11,8 +11,12 @@ public class ServerFacade {
     public ServerFacade(int port) {
         String url = "localhost:" + port;
         ServerFacade.url = url;
-        serverCalls = new ServerCalls("http://localhost:8080");
+        serverCalls = new ServerCalls("http://localhost:" + port);
 
+    }
+
+    public void clear() throws ServerError {
+        serverCalls.clearDB();
     }
 
     public ListGamesResponse getGames(UUID authToken) throws ServerError {

@@ -32,6 +32,17 @@ public class ServerCalls {
         }
     }
 
+    public void clearDB() throws ServerError {
+        try {
+            var method = "DELETE";
+            var body = "";
+            HttpURLConnection http = sendRequest(ServerCalls.url + "/db", method, body, null);
+            receiveResponse(http, String.class);
+        } catch (Exception e) {
+            throw new ServerError(500, e.getMessage());
+        }
+    }
+
     public void joinGame(JoinGameRequest request, UUID authtoken) throws ServerError {
         try {
             var method = "PUT";
