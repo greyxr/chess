@@ -8,18 +8,15 @@ import server.ServerFacade;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.UUID;
 
 public class Client {
 
-    private ServerFacade serverFacade;
-    private boolean loggedIn = false;
+    private final ServerFacade serverFacade;
 
     private UUID authToken = null;
-    private ArrayList<GameData> currentGames = new ArrayList<>();
+    private final ArrayList<GameData> currentGames = new ArrayList<>();
 
     public Client(int port) {
         serverFacade = new ServerFacade(port);
@@ -82,6 +79,7 @@ public class Client {
                 joinGame();
                 break;
             case "5":
+                joinObserver();
                 break;
             case "6":
             case "q":
@@ -204,7 +202,7 @@ public class Client {
             int gameNumber = Integer.parseInt(reader.readLine());
             print("Which color? black/white");
             String color = reader.readLine();
-            currentGames = serverFacade.sendJoinRequest(gameNumber, color, authToken);
+            serverFacade.sendJoinRequest(currentGames, gameNumber, color, authToken);
             printChessBoard(currentGames.get(gameNumber - 1).game());
         } catch (ServerError e) {
             print(e.message());
@@ -213,6 +211,23 @@ public class Client {
         } catch (NumberFormatException e) {
             print("Please enter a valid game number.");
             joinGame();
+        }
+    }
+
+    void joinObserver() {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            print("Game number?");
+            int gameNumber = Integer.parseInt(reader.readLine());
+            serverFacade.sendJoinRequest(currentGames, gameNumber, null, authToken);
+            printChessBoard(currentGames.get(gameNumber - 1).game());
+        } catch (ServerError e) {
+            print(e.message());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (NumberFormatException e) {
+            print("Please enter a valid game number.");
+            joinObserver();
         }
     }
 
