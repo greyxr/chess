@@ -2,7 +2,7 @@
   <library name="glassfish.tyrus.bundles.standalone.client" type="repository">
     <properties maven-id="org.glassfish.tyrus.bundles:tyrus-standalone-client:1.15" />
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/tyrus-standalone-client-1.15.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/tyrus/bundles/tyrus-standalone-client/1.15/tyrus-standalone-client-1.15.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
