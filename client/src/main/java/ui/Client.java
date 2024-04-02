@@ -100,6 +100,9 @@ public class Client {
             case "2":
                 login();
                 break;
+            case "7":
+                test();
+                break;
             case "3":
             case "q":
             case "quit":
@@ -107,6 +110,15 @@ public class Client {
             default:
                 unrecognizedCommand();
 
+        }
+    }
+
+    void test() {
+        print("Testing websocket client connection");
+        try {
+            serverFacade.sendWebSocketConnect();
+        } catch (Exception e) {
+            print("Exception: " + e.getMessage());
         }
     }
 

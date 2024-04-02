@@ -25,6 +25,9 @@ public class Server {
 
         Spark.staticFiles.location("web");
 
+        // Websocket route
+        Spark.webSocket("/connect", WSServer.class);
+
         before("/game", (request, response) -> {
             try {
                 String checkAuth = request.headers("Authorization");

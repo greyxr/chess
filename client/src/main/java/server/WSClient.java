@@ -7,13 +7,13 @@ import java.util.Scanner;
 public class WSClient extends Endpoint {
 
     public static void main(String[] args) throws Exception {
-        var ws = new WSClient();
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Enter a message you want to echo");
-        while (true) {
-            ws.send(scanner.nextLine());
-        }
+//        var ws = new WSClient();
+//        Scanner scanner = new Scanner(System.in);
+//
+//        System.out.println("Enter a message you want to echo");
+//        while (true) {
+//            ws.send(scanner.nextLine());
+//        }
     }
 
     public Session session;
@@ -22,6 +22,7 @@ public class WSClient extends Endpoint {
         URI uri = new URI("ws://localhost:8080/connect");
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         this.session = container.connectToServer(this, uri);
+        System.out.println("Websocket set up.");
 
         this.session.addMessageHandler(new MessageHandler.Whole<String>() {
             public void onMessage(String message) {
@@ -35,5 +36,6 @@ public class WSClient extends Endpoint {
     }
 
     public void onOpen(Session session, EndpointConfig endpointConfig) {
+        System.out.println("Websocket opened.");
     }
 }
