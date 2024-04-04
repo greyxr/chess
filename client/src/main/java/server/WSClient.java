@@ -1,5 +1,11 @@
 package server;
 
+import ui.Client;
+import webSocketMessages.serverMessages.MessageAdapter;
+import webSocketMessages.serverMessages.ServerMessage;
+import webSocketMessages.userCommands.CommandAdapter;
+import webSocketMessages.userCommands.UserGameCommand;
+
 import javax.websocket.*;
 import java.net.URI;
 import java.util.Scanner;
@@ -18,20 +24,36 @@ public class WSClient extends Endpoint {
 
     public Session session;
 
-    public WSClient() throws Exception {
-        URI uri = new URI("ws://localhost:8080/connect");
-        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-        this.session = container.connectToServer(this, uri);
-        System.out.println("Websocket set up.");
+    Client client;
+    int port;
 
-        this.session.addMessageHandler(new MessageHandler.Whole<String>() {
-            public void onMessage(String message) {
-                System.out.println(message);
-            }
-        });
+    public WSClient(Client client, int port) {
+        this.client = client;
+        this.port = port;
+    }
+
+    public void setup() {
+        try {
+            URI uri = new URI("ws://localhost:" + this.port + "/connect");
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            this.session = container.connectToServer(this, uri);
+            System.out.println("Websocket set up.");
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                public void onMessage(String message) {
+                    MessageAdapter messageAdapter = new MessageAdapter();
+                    ServerMessage serverMessage = messageAdapter.fromJson(message);
+                    client.notify(serverMessage);
+                }
+            });
+        } catch(Exception ex) {
+            System.out.println(("Exception caught: " + ex.getMessage()));
+        }
     }
 
     public void send(String msg) throws Exception {
+        if (this.session == null) {
+            setup();
+        }
         this.session.getBasicRemote().sendText(msg);
     }
 

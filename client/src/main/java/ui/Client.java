@@ -6,6 +6,12 @@ import com.google.gson.Gson;
 import exceptions.ServerError;
 import model.*;
 import server.ServerFacade;
+import server.ServerMessageObserver;
+import server.WSClient;
+import webSocketMessages.serverMessages.Error;
+import webSocketMessages.serverMessages.LoadGame;
+import webSocketMessages.serverMessages.Notification;
+import webSocketMessages.serverMessages.ServerMessage;
 import webSocketMessages.userCommands.*;
 
 import java.io.BufferedReader;
@@ -15,15 +21,19 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Client {
+public class Client implements ServerMessageObserver {
 
     private final ServerFacade serverFacade;
 
     private UUID authToken = null;
     private final ArrayList<GameData> currentGames = new ArrayList<>();
+    
+    private WSClient ws;
+    int port;
 
     public Client(int port) {
         serverFacade = new ServerFacade(port);
+        ws = new WSClient(this, port);
     }
     public void main() throws IOException {
         print("CS 240 Chess Server.\nType a number to get started, or help for help.\n");
@@ -74,19 +84,19 @@ public class Client {
     void handleInGameInput(String input) throws Exception {
         switch (input) {
             case "1":
-                serverFacade.sendWebSocketConnect(new Gson().toJson(new JoinPlayer("12345", 5, ChessGame.TeamColor.WHITE)));
+                ws.send(new Gson().toJson(new JoinPlayer("12345", 5, ChessGame.TeamColor.WHITE)));
                 break;
             case "2":
-                serverFacade.sendWebSocketConnect(new Gson().toJson(new JoinObserver("12345", 5)));
+                ws.send(new Gson().toJson(new JoinObserver("12345", 5)));
                 break;
             case "3":
-                serverFacade.sendWebSocketConnect(new Gson().toJson(new MakeMove("12345", 5, null)));
+                ws.send(new Gson().toJson(new MakeMove("12345", 5, null)));
                 break;
             case "4":
-                serverFacade.sendWebSocketConnect(new Gson().toJson(new Leave("12345", 5)));
+                ws.send(new Gson().toJson(new Leave("12345", 5)));
                 break;
             case "5":
-                serverFacade.sendWebSocketConnect(new Gson().toJson(new Resign("12345", 5)));
+                ws.send(new Gson().toJson(new Resign("12345", 5)));
                 break;
         }
     }
@@ -144,6 +154,42 @@ public class Client {
                 unrecognizedCommand();
 
         }
+    }
+
+    void gameLoop() {
+        while (true) {
+            printInGameMenu();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            try {
+                String input = reader.readLine();
+                if (Objects.equals(input, "6")) {
+                    break;
+                }
+                handleInGameInput(input);
+            } catch (Exception e) {
+                print("Caught exception " + e.getMessage());
+            }
+        }
+    }
+
+    public void notify(ServerMessage message) {
+        switch(message.getServerMessageType()) {
+            case NOTIFICATION -> notification((Notification) message);
+            case ERROR -> error((Error) message);
+            case LOAD_GAME -> loadGame((LoadGame) message);
+        }
+    }
+
+    public void notification(Notification notification) {
+        print("Notification: " + notification.getMessage());
+    }
+
+    public void error(Error error) {
+        print("Error: " + error.getNotification());
+    }
+
+    public void loadGame(LoadGame loadGame) {
+        print("LoadGame: " + loadGame.getGame().toString());
     }
 
     void test() {
@@ -258,22 +304,6 @@ public class Client {
         } catch (NumberFormatException e) {
             print("Please enter a valid game number.");
             joinGame();
-        }
-    }
-
-    void gameLoop() {
-        while (true) {
-            printInGameMenu();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            try {
-                String input = reader.readLine();
-                if (Objects.equals(input, "6")) {
-                    break;
-                }
-                handleInGameInput(input);
-            } catch (Exception e) {
-                print("Caught exception " + e.getMessage());
-            }
         }
     }
 

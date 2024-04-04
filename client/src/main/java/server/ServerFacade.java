@@ -12,20 +12,18 @@ import java.util.UUID;
 
 public class ServerFacade {
     static String url;
-
-    static WSClient ws;
     static ServerCalls serverCalls;
     public ServerFacade(int port) {
         String url = "localhost:" + port;
         ServerFacade.url = url;
         serverCalls = new ServerCalls("http://localhost:" + port);
-        try {
-            System.out.println("Setting up websocket...");
-            ws = new WSClient();
-        } catch (Exception e) {
-            System.out.println("Exception found: " + e);
-            throw new RuntimeException(e);
-        }
+//        try {
+//            System.out.println("Setting up websocket...");
+//            ws = new WSClient();
+//        } catch (Exception e) {
+//            System.out.println("Exception found: " + e);
+//            throw new RuntimeException(e);
+//        }
 
     }
 
@@ -59,9 +57,5 @@ public class ServerFacade {
 
     public GameData sendCreateGameRequest(GameName newGame, UUID authToken) throws ServerError {
         return serverCalls.createGameRequest(newGame, authToken);
-    }
-
-    public void sendWebSocketConnect(String msg) throws Exception {
-        ws.send(msg);
     }
 }
