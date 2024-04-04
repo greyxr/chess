@@ -3,14 +3,11 @@ package server;
 import ui.Client;
 import webSocketMessages.serverMessages.MessageAdapter;
 import webSocketMessages.serverMessages.ServerMessage;
-import webSocketMessages.userCommands.CommandAdapter;
-import webSocketMessages.userCommands.UserGameCommand;
 
 import javax.websocket.*;
 import java.net.URI;
-import java.util.Scanner;
 
-public class WSClient extends Endpoint {
+public class WSCommunicator extends Endpoint {
 
     public static void main(String[] args) throws Exception {
 //        var ws = new WSClient();
@@ -27,7 +24,7 @@ public class WSClient extends Endpoint {
     Client client;
     int port;
 
-    public WSClient(Client client, int port) {
+    public WSCommunicator(Client client, int port) {
         this.client = client;
         this.port = port;
     }

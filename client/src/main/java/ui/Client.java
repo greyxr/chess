@@ -1,13 +1,12 @@
 package ui;
 
 import chess.ChessGame;
-import chess.ChessMove;
 import com.google.gson.Gson;
 import exceptions.ServerError;
 import model.*;
 import server.ServerFacade;
 import server.ServerMessageObserver;
-import server.WSClient;
+import server.WSCommunicator;
 import webSocketMessages.serverMessages.Error;
 import webSocketMessages.serverMessages.LoadGame;
 import webSocketMessages.serverMessages.Notification;
@@ -28,12 +27,12 @@ public class Client implements ServerMessageObserver {
     private UUID authToken = null;
     private final ArrayList<GameData> currentGames = new ArrayList<>();
     
-    private WSClient ws;
+    private WSCommunicator ws;
     int port;
 
     public Client(int port) {
         serverFacade = new ServerFacade(port);
-        ws = new WSClient(this, port);
+        ws = new WSCommunicator(this, port);
     }
     public void main() throws IOException {
         print("CS 240 Chess Server.\nType a number to get started, or help for help.\n");
