@@ -61,10 +61,7 @@ public class ServerFacade {
         return serverCalls.createGameRequest(newGame, authToken);
     }
 
-    public void sendWebSocketConnect() throws Exception {
-        UserGameCommand command = new JoinPlayer("12345", 5, ChessGame.TeamColor.WHITE);
-        Gson gson = new Gson();
-        String json = gson.toJson(command);
-        ws.send(json);
+    public void sendWebSocketConnect(String msg) throws Exception {
+        ws.send(msg);
     }
 }

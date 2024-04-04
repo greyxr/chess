@@ -1,14 +1,18 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import com.google.gson.Gson;
 import exceptions.ServerError;
 import model.*;
 import server.ServerFacade;
+import webSocketMessages.userCommands.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Client {
@@ -56,6 +60,35 @@ public class Client {
         System.out.println("4 -- Join Game");
         System.out.println("5 -- Join Observer");
         System.out.println("6 -- Quit\n");
+    }
+
+    void printInGameMenu() {
+        print("   1 - Join Game");
+        print("   2 - Join Observer");
+        print("   3 - Make Move");
+        print("   4 - Resign");
+        print("   5 - Leave");
+        print("   6 - Quit");
+    }
+
+    void handleInGameInput(String input) throws Exception {
+        switch (input) {
+            case "1":
+                serverFacade.sendWebSocketConnect(new Gson().toJson(new JoinPlayer("12345", 5, ChessGame.TeamColor.WHITE)));
+                break;
+            case "2":
+                serverFacade.sendWebSocketConnect(new Gson().toJson(new JoinObserver("12345", 5)));
+                break;
+            case "3":
+                serverFacade.sendWebSocketConnect(new Gson().toJson(new MakeMove("12345", 5, null)));
+                break;
+            case "4":
+                serverFacade.sendWebSocketConnect(new Gson().toJson(new Leave("12345", 5)));
+                break;
+            case "5":
+                serverFacade.sendWebSocketConnect(new Gson().toJson(new Resign("12345", 5)));
+                break;
+        }
     }
 
     void unrecognizedCommand() {
@@ -115,11 +148,11 @@ public class Client {
 
     void test() {
         print("Testing websocket client connection");
-        try {
-            serverFacade.sendWebSocketConnect();
-        } catch (Exception e) {
-            print("Exception: " + e.getMessage());
-        }
+//        try {
+//            serverFacade.sendWebSocketConnect();
+//        } catch (Exception e) {
+//            print("Exception: " + e.getMessage());
+//        }
     }
 
     void help() {
@@ -216,7 +249,8 @@ public class Client {
             print("Which color? black/white");
             String color = reader.readLine();
             serverFacade.sendJoinRequest(currentGames, gameNumber, color, authToken);
-            printChessBoard(currentGames.get(gameNumber - 1).game());
+            //printChessBoard(currentGames.get(gameNumber - 1).game());
+            gameLoop();
         } catch (ServerError e) {
             print(e.message());
         } catch (IOException e) {
@@ -227,13 +261,30 @@ public class Client {
         }
     }
 
+    void gameLoop() {
+        while (true) {
+            printInGameMenu();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            try {
+                String input = reader.readLine();
+                if (Objects.equals(input, "6")) {
+                    break;
+                }
+                handleInGameInput(input);
+            } catch (Exception e) {
+                print("Caught exception " + e.getMessage());
+            }
+        }
+    }
+
     void joinObserver() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             print("Game number?");
             int gameNumber = Integer.parseInt(reader.readLine());
             serverFacade.sendJoinRequest(currentGames, gameNumber, null, authToken);
-            printChessBoard(currentGames.get(gameNumber - 1).game());
+            gameLoop();
+//            printChessBoard(currentGames.get(gameNumber - 1).game());
         } catch (ServerError e) {
             print(e.message());
         } catch (IOException e) {
