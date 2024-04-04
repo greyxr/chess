@@ -1,7 +1,12 @@
 package server;
 
+import chess.ChessGame;
+import com.google.gson.Gson;
 import exceptions.ServerError;
 import model.*;
+import webSocketMessages.userCommands.JoinPlayer;
+import webSocketMessages.userCommands.UserGameCommand;
+
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -57,6 +62,9 @@ public class ServerFacade {
     }
 
     public void sendWebSocketConnect() throws Exception {
-        ws.send("Test string from client");
+        UserGameCommand command = new JoinPlayer("12345", 5, ChessGame.TeamColor.WHITE);
+        Gson gson = new Gson();
+        String json = gson.toJson(command);
+        ws.send(json);
     }
 }

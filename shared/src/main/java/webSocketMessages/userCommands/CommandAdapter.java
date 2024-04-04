@@ -8,7 +8,7 @@ public class CommandAdapter  {
     GsonBuilder builder;
     Gson gson;
 
-    CommandAdapter() {
+    public CommandAdapter() {
         builder = new GsonBuilder();
         builder.registerTypeAdapter(UserGameCommand.class, new adapter());
         gson = builder.create();

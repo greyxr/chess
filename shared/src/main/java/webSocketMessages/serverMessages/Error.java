@@ -1,4 +1,9 @@
 package webSocketMessages.serverMessages;
 
-public record Error(String notification) {
+public class Error extends ServerMessage {
+    String notification;
+    public Error (String notification, ServerMessageType type) {
+        super(type);
+        this.notification = notification;
+    }
 }

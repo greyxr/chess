@@ -6,7 +6,6 @@ import org.eclipse.jetty.websocket.api.annotations.*;
 import org.eclipse.jetty.websocket.api.*;
 import spark.Spark;
 import webSocketMessages.userCommands.*;
-import webSocketMessages.userCommands.GameCommand;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +16,7 @@ import static webSocketMessages.userCommands.UserGameCommand.CommandType.*;
 @WebSocket
 public class WSServer {
 
-    Map<UUID, Session> sessions;
+    Map<String, Session> sessions;
 
     public WSServer() {
         sessions = new HashMap<>();
@@ -28,7 +27,7 @@ public class WSServer {
 //        Spark.get("/echo/:msg", (req, res) -> "HTTP response: " + req.params(":msg"));
     }
 
-    public Session getConnection(UUID authToken, Session session) {
+    public Session getConnection(String authToken, Session session) {
         return sessions.get(authToken);
     }
 
@@ -36,19 +35,19 @@ public class WSServer {
     public void onMessage(Session session, String msg) throws Exception {
         CommandAdapter commandAdapter = new CommandAdapter();
         UserGameCommand command = commandAdapter.fromJson(msg);
-
-        var conn = getConnection(command.authToken, session);
-        if (conn != null) {
-            switch (command.commandType) {
-                case JOIN_PLAYER -> join(conn, msg);
-                case JOIN_OBSERVER -> observe(conn, msg);
-                case MAKE_MOVE -> move(conn, msg));
-                case LEAVE -> leave(conn, msg);
-                case RESIGN -> resign(conn, msg);
-            }
-        } else {
-            Connection.sendError(session.getRemote(), "unknown user");
-        }
+        session.getRemote().sendString("Command received: " + command.getCommandType());
+//        Session conn = getConnection(command.getAuthString(), session);
+//        if (conn != null) {
+//            switch (command.getCommandType()) {
+//                case JOIN_PLAYER -> join(conn, msg);
+//                case JOIN_OBSERVER -> observe(conn, msg);
+//                case MAKE_MOVE -> move(conn, msg));
+//                case LEAVE -> leave(conn, msg);
+//                case RESIGN -> resign(conn, msg);
+//            }
+//        } else {
+//            Connection.sendError(session.getRemote(), "unknown user");
+//        }
     }
 
     @OnWebSocketError
