@@ -96,6 +96,12 @@ public class SQLGameDAO implements GameDAO {
     }
 
     @Override
+    public int saveGame(int gameId, ChessGame game) throws DataAccessException {
+        String sql = "UPDATE games SET chess_game = ? WHERE game_id = ?";
+        return executeUpdate(sql, game, gameId);
+    }
+
+    @Override
     public int getBiggestGameId() throws DataAccessException {
         String sql = "SELECT max(game_id) FROM games";
         try (Connection conn = DatabaseManager.getConnection()) {

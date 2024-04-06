@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.*;
 import dataAccess.*;
 import model.AuthData;
@@ -15,10 +16,7 @@ import webSocketMessages.serverMessages.ServerMessage;
 import webSocketMessages.userCommands.*;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static webSocketMessages.userCommands.UserGameCommand.CommandType.*;
 
@@ -72,6 +70,15 @@ public class WSServer {
         }
     }
 
+    public String getAuthToken(int gameId, Session session) {
+        for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
+            if (entry.getValue() == session) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     public void join(Session conn, JoinPlayer command) throws IOException, DataAccessException {
 //        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
 //        conn.getRemote().sendString(gson.toJson(serverMessage));
@@ -81,17 +88,42 @@ public class WSServer {
 
         // Get user info
         UUID authToken = UUID.fromString(command.getAuthString());
-        AuthData authData = authDAO.getAuth(authToken);
-        UserData callingUser = userDAO.getUser(authData.username());
+        AuthData authData;
+        UserData callingUser;
+        GameData currentGame;
+        try {
+            authData = authDAO.getAuth(authToken);
+            callingUser = userDAO.getUser(authData.username());
+            // Get game from database
+            currentGame = gameDAO.getGame(gameId);
+        } catch (DataAccessException ex) {
+            sendError(conn, "Error retrieving information game or user information. " + ex.getMessage());
+            return;
+        }
+
+
+        if (callingUser == null || currentGame == null) {
+            sendError(conn, "Unknown user or game");
+            return;
+        }
 
         // Verify and add user to gameId map
+        ChessGame.TeamColor playerColor = command.getPlayerColor();
+        String calledUser = null;
+        switch (playerColor) {
+            case ChessGame.TeamColor.WHITE -> calledUser = currentGame.whiteUsername();
+            case ChessGame.TeamColor.BLACK -> calledUser = currentGame.blackUsername();
+        }
+
+        if (!Objects.equals(callingUser.username(), calledUser)) {
+            sendError(conn, "Unknown user");
+            return;
+        }
+
         (gameSessions.get(gameId)).put(command.getAuthString(), conn);
 
-        // Get game from database
-        GameData currentGame = gameDAO.getGame(gameId);
-
         // Notify users
-        ServerMessage serverMessage = new Notification(callingUser.username() + " has joined game " + gameId, ServerMessage.ServerMessageType.NOTIFICATION);
+        ServerMessage serverMessage = new Notification(callingUser.username() + " has joined game " + gameId + " as " + command.getPlayerColor(), ServerMessage.ServerMessageType.NOTIFICATION);
         for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
             if (entry.getValue() != conn) {
                 System.out.println("Connection found");
@@ -105,13 +137,118 @@ public class WSServer {
     }
 
     public void observe(Session conn, JoinObserver command) throws IOException {
-        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-        conn.getRemote().sendString(gson.toJson(serverMessage));
+//        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
+//        conn.getRemote().sendString(gson.toJson(serverMessage));
+
+        // Add game to map
+        int gameId = command.getGameId();
+        addGame(gameId);
+
+        // Get user info
+        UUID authToken = UUID.fromString(command.getAuthString());
+        AuthData authData;
+        UserData callingUser;
+        GameData currentGame;
+        try {
+            authData = authDAO.getAuth(authToken);
+            callingUser = userDAO.getUser(authData.username());
+            // Get game from database
+            currentGame = gameDAO.getGame(gameId);
+        } catch (DataAccessException ex) {
+            sendError(conn, "Error retrieving information game or user information. " + ex.getMessage());
+            return;
+        }
+
+
+        if (callingUser == null || currentGame == null) {
+            sendError(conn, "Unknown user or game");
+            return;
+        }
+
+        // Verify and add user to gameId map
+        (gameSessions.get(gameId)).put(command.getAuthString(), conn);
+
+        // Notify users
+        ServerMessage serverMessage = new Notification(callingUser.username() + " has joined game " + gameId + " as an observer.", ServerMessage.ServerMessageType.NOTIFICATION);
+        for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
+            if (entry.getValue() != conn) {
+                System.out.println("Connection found");
+                send(entry.getValue(), serverMessage);
+            }
+        }
+
+        // Send response
+        ServerMessage loadGame = new LoadGame(currentGame.game(), ServerMessage.ServerMessageType.LOAD_GAME);
+        send(conn, loadGame);
     }
 
     public void move(Session conn, MakeMove command) throws IOException {
-        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-        conn.getRemote().sendString(gson.toJson(serverMessage));
+        // Get game from map
+        int gameId = command.getGameId();
+        String authTokenString = getAuthToken(gameId, conn);
+        if (authTokenString == null) {
+            sendError(conn, "Unknown user");
+            return;
+        }
+
+        // Get user info
+        UUID authToken = UUID.fromString(authTokenString);
+        AuthData authData;
+        UserData callingUser;
+        GameData currentGame;
+        try {
+            authData = authDAO.getAuth(authToken);
+            callingUser = userDAO.getUser(authData.username());
+            // Get game from database
+            currentGame = gameDAO.getGame(gameId);
+        } catch (DataAccessException ex) {
+            sendError(conn, "Error retrieving information game or user information. " + ex.getMessage());
+            return;
+        }
+
+
+        if (callingUser == null || currentGame == null) {
+            sendError(conn, "Unknown user or game");
+            return;
+        }
+
+        // Verify user is in the game
+        String whitePlayer = currentGame.whiteUsername();
+        String blackPlayer = currentGame.blackUsername();
+        if (!Objects.equals(whitePlayer, callingUser.username()) && !Objects.equals(blackPlayer, callingUser.username())) {
+            sendError(conn, "Unknown player.");
+            return;
+        }
+//        ChessGame.TeamColor playerColor = Objects.equals(whitePlayer, callingUser.username()) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+//        if (playerColor != currentTurn) {
+//            sendError(conn, "It is not your turn.");
+//        }
+
+        // Make move
+        try {
+            currentGame.game().makeMove(command.getMove());
+        } catch (chess.InvalidMoveException ex) {
+            sendError(conn, ex.getMessage());
+            return;
+        }
+
+        try {
+            gameDAO.saveGame(gameId, currentGame.game());
+        } catch(DataAccessException ex) {
+            sendError(conn, "Unable to save game.");
+        }
+
+
+        // Notify users and send response
+        ServerMessage moveNotification = new Notification(callingUser.username() + " has made a move.", ServerMessage.ServerMessageType.NOTIFICATION);
+        ServerMessage loadGameMessage = new LoadGame(currentGame.game(), ServerMessage.ServerMessageType.LOAD_GAME);
+        for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
+            send(entry.getValue(), loadGameMessage);
+            if (entry.getValue() != conn) {
+                System.out.println("Connection found");
+                send(entry.getValue(), moveNotification);
+            }
+        }
     }
 
     public void leave(Session conn, Leave command) throws IOException {
@@ -125,7 +262,7 @@ public class WSServer {
     }
 
     public void sendError(Session conn, String msg) throws IOException {
-        ServerMessage message = new Error(msg, ServerMessage.ServerMessageType.ERROR);
+        ServerMessage message = new Error("Error: " + msg, ServerMessage.ServerMessageType.ERROR);
         send(conn, message);
     }
 
@@ -135,7 +272,7 @@ public class WSServer {
     }
 
     @OnWebSocketError
-    public void onError(java.lang.Throwable throwable) {
+    public void onError(Throwable throwable) {
         System.out.println("Websocket error!");
         System.out.println(throwable.toString());
     }

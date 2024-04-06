@@ -74,12 +74,12 @@ public class Client implements ServerMessageObserver {
     }
 
     void printInGameMenu() {
-        print("   1 - Join Game");
-        print("   2 - Join Observer");
-        print("   3 - Make Move");
-        print("   4 - Resign");
-        print("   5 - Leave");
-        print("   6 - Quit");
+        print("   1 -- Help");
+        print("   2 -- Redraw Chess Board");
+        print("   3 -- Make Move");
+        print("   4 -- Leave");
+        print("   5 -- Resign");
+        print("   6 -- Highlight Legal Moves");
     }
 
     void handleInGameInput(String input) throws Exception {
@@ -173,6 +173,13 @@ public class Client implements ServerMessageObserver {
         }
     }
 
+    void makeMove() {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        print("Which piece?");
+        String piece = reader.readLine();
+        print("Which square?")
+    }
+
     public void notify(ServerMessage message) {
         switch(message.getServerMessageType()) {
             case NOTIFICATION -> notification((Notification) message);
@@ -190,7 +197,6 @@ public class Client implements ServerMessageObserver {
     }
 
     public void loadGame(LoadGame loadGame) {
-        print("Loadgame");
         printChessBoard(loadGame.getGame());
     }
 

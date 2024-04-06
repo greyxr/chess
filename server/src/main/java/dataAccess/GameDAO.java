@@ -1,5 +1,6 @@
 package dataAccess;
 
+import chess.ChessGame;
 import model.GameData;
 
 import java.util.Collection;
@@ -16,6 +17,8 @@ public interface GameDAO {
     int insertGame(String gameName) throws DataAccessException;
 
     int getBiggestGameId() throws DataAccessException;
+
+    int saveGame(int gameId, ChessGame game) throws DataAccessException;
 
 
 }
