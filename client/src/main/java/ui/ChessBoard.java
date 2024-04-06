@@ -1,5 +1,7 @@
 package ui;
 
+import chess.ChessGame;
+
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
@@ -14,18 +16,21 @@ public class ChessBoard {
     private static final String[] numberBorder = new String[]{null, "1", "2", "3", "4", "5", "6", "7", "8", null};
 
 
-    public static void main(String [][] whitePieces, String[][] blackPieces) {
+    public static void main(String [][] whitePieces, String[][] blackPieces, ChessGame.TeamColor teamColor) {
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         out.print(ERASE_SCREEN);
         out.print(SET_TEXT_BOLD);
 
-        drawChessBoard(out, whitePieces, blackPieces);
+        drawChessBoard(out, whitePieces, blackPieces, teamColor);
     }
 
-    private static void drawChessBoard(PrintStream out, String[][] whitePieces, String[][] blackPieces) {
-        drawBlackSide(out, whitePieces, blackPieces);
-        drawWhiteSide(out, whitePieces, blackPieces);
+    private static void drawChessBoard(PrintStream out, String[][] whitePieces, String[][] blackPieces, ChessGame.TeamColor teamColor) {
+        if (teamColor == null || teamColor == ChessGame.TeamColor.WHITE) {
+            drawWhiteSide(out, whitePieces, blackPieces);
+        } else {
+            drawBlackSide(out, whitePieces, blackPieces);
+        }
     }
 
     private static void drawWhiteSide(PrintStream out, String[][] whitePieces, String[][] blackPieces) {

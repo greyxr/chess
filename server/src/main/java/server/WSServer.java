@@ -1,17 +1,22 @@
 package server;
 
 import com.google.gson.*;
+import dataAccess.*;
 import model.AuthData;
+import model.GameData;
+import model.UserData;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import org.eclipse.jetty.websocket.api.*;
 import spark.Spark;
 import webSocketMessages.serverMessages.Error;
+import webSocketMessages.serverMessages.LoadGame;
 import webSocketMessages.serverMessages.Notification;
 import webSocketMessages.serverMessages.ServerMessage;
 import webSocketMessages.userCommands.*;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,16 +24,26 @@ import static webSocketMessages.userCommands.UserGameCommand.CommandType.*;
 
 @WebSocket
 public class WSServer {
+    Map<Integer, Map<String, Session>> gameSessions;
 
-    Map<String, Session> sessions;
-    Map<Session, Integer> gameSessions;
 
     Gson gson;
+    GameDAO gameDAO;
+    AuthDAO authDAO;
+    UserDAO userDAO;
 
     public WSServer() {
-        sessions = new HashMap<>();
         gameSessions = new HashMap<>();
         gson = new Gson();
+        try {
+            gameDAO = new SQLGameDAO();
+            authDAO = new SQLAuthDAO();
+            userDAO = new SQLUserDAO();
+        } catch (DataAccessException ex) {
+            System.out.println("Failed to initalize DAOs in WSServer.");
+            System.exit(-1);
+        }
+
     }
     public static void main(String[] args) {
 //        Spark.port(8080);
@@ -36,33 +51,57 @@ public class WSServer {
 //        Spark.get("/echo/:msg", (req, res) -> "HTTP response: " + req.params(":msg"));
     }
 
-    public Session getConnection(String authToken, Session session) {
-        return sessions.get(authToken);
-    }
-
     @OnWebSocketMessage
     public void onMessage(Session session, String msg) throws Exception {
         CommandAdapter commandAdapter = new CommandAdapter();
         UserGameCommand command = commandAdapter.fromJson(msg);
         session.getRemote().sendString("Command received: " + command.getCommandType());
-//        Session conn = getConnection(command.getAuthString(), session);
-        Session conn = session;
-        if (conn != null) {
             switch (command.getCommandType()) {
-                case JOIN_PLAYER -> join(conn, (JoinPlayer) command);
-                case JOIN_OBSERVER -> observe(conn, (JoinObserver) command);
-                case MAKE_MOVE -> move(conn, (MakeMove) command);
-                case LEAVE -> leave(conn, (Leave) command);
-                case RESIGN -> resign(conn, (Resign) command);
+                case JOIN_PLAYER -> join(session, (JoinPlayer) command);
+                case JOIN_OBSERVER -> observe(session, (JoinObserver) command);
+                case MAKE_MOVE -> move(session, (MakeMove) command);
+                case LEAVE -> leave(session, (Leave) command);
+                case RESIGN -> resign(session, (Resign) command);
             }
-        } else {
-            sendError(session, "unknown user");
+    }
+
+    public void addGame(int gameId) {
+        if (gameSessions.get(gameId) == null) {
+            HashMap<String, Session> newGame = new HashMap<>();
+            gameSessions.put(gameId, newGame);
         }
     }
 
-    public void join(Session conn, JoinPlayer command) throws IOException {
-        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-        conn.getRemote().sendString(gson.toJson(serverMessage));
+    public void join(Session conn, JoinPlayer command) throws IOException, DataAccessException {
+//        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
+//        conn.getRemote().sendString(gson.toJson(serverMessage));
+        // Add game to map
+        int gameId = command.getGameId();
+        addGame(gameId);
+
+        // Get user info
+        UUID authToken = UUID.fromString(command.getAuthString());
+        AuthData authData = authDAO.getAuth(authToken);
+        UserData callingUser = userDAO.getUser(authData.username());
+
+        // Verify and add user to gameId map
+        (gameSessions.get(gameId)).put(command.getAuthString(), conn);
+
+        // Get game from database
+        GameData currentGame = gameDAO.getGame(gameId);
+
+        // Notify users
+        ServerMessage serverMessage = new Notification(callingUser.username() + " has joined game " + gameId, ServerMessage.ServerMessageType.NOTIFICATION);
+        for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
+            if (entry.getValue() != conn) {
+                System.out.println("Connection found");
+                send(entry.getValue(), serverMessage);
+            }
+        }
+
+        // Send response
+        ServerMessage loadGame = new LoadGame(currentGame.game(), ServerMessage.ServerMessageType.LOAD_GAME);
+        send(conn, loadGame);
     }
 
     public void observe(Session conn, JoinObserver command) throws IOException {
@@ -99,6 +138,28 @@ public class WSServer {
     public void onError(java.lang.Throwable throwable) {
         System.out.println("Websocket error!");
         System.out.println(throwable.toString());
+    }
+
+    @OnWebSocketClose
+    public void onClose(Session session, int var2, String var3) {
+        System.out.println("On close. var2: " + var2 + " var3: " + var3);
+        // Iterate over the entries of the outer map
+        for (Map.Entry<Integer, Map<String, Session>> outerEntry : gameSessions.entrySet()) {
+            // Get the inner map associated with the current key
+            Map<String, Session> innerMap = outerEntry.getValue();
+
+            // Create an iterator to safely remove sessions from the inner map
+            Iterator<Map.Entry<String, Session>> iterator = innerMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, Session> innerEntry = iterator.next();
+                Session currentSession = innerEntry.getValue();
+                if (currentSession.equals(session)) {
+                    // Remove the session from the inner map
+                    System.out.println("Found connection!");
+                    iterator.remove();
+                }
+            }
+        }
     }
 
 }

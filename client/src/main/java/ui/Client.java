@@ -26,6 +26,8 @@ public class Client implements ServerMessageObserver {
 
     private UUID authToken = null;
     private final ArrayList<GameData> currentGames = new ArrayList<>();
+
+    private ChessGame.TeamColor teamColor;
     
     private WSCommunicator ws;
     int port;
@@ -83,10 +85,10 @@ public class Client implements ServerMessageObserver {
     void handleInGameInput(String input) throws Exception {
         switch (input) {
             case "1":
-                ws.send(new Gson().toJson(new JoinPlayer("12345", 5, ChessGame.TeamColor.WHITE)));
+                ws.send(new Gson().toJson(new JoinPlayer(authToken.toString(), 1, ChessGame.TeamColor.WHITE)));
                 break;
             case "2":
-                ws.send(new Gson().toJson(new JoinObserver("12345", 5)));
+                ws.send(new Gson().toJson(new JoinObserver(authToken.toString(), 1)));
                 break;
             case "3":
                 ws.send(new Gson().toJson(new MakeMove("12345", 5, null)));
@@ -156,8 +158,8 @@ public class Client implements ServerMessageObserver {
     }
 
     void gameLoop() {
+        printInGameMenu();
         while (true) {
-            printInGameMenu();
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             try {
                 String input = reader.readLine();
@@ -188,7 +190,8 @@ public class Client implements ServerMessageObserver {
     }
 
     public void loadGame(LoadGame loadGame) {
-        print("LoadGame: " + loadGame.getGame().toString());
+        print("Loadgame");
+        printChessBoard(loadGame.getGame());
     }
 
     void test() {
@@ -210,7 +213,7 @@ public class Client implements ServerMessageObserver {
 
     void printChessBoard(ChessGame chessGame) {
         chessGame.getBoard().resetBoard();
-        ChessBoard.main(chessGame.convertToMatrix("white"), chessGame.convertToMatrix("black"));
+        ChessBoard.main(chessGame.convertToMatrix("white"), chessGame.convertToMatrix("black"), teamColor);
     }
 
     void register() {
@@ -293,6 +296,15 @@ public class Client implements ServerMessageObserver {
             int gameNumber = Integer.parseInt(reader.readLine());
             print("Which color? black/white");
             String color = reader.readLine();
+            if (color.equalsIgnoreCase("white")) {
+                teamColor = ChessGame.TeamColor.WHITE;
+            } else if (color.equalsIgnoreCase("black")) {
+                teamColor = ChessGame.TeamColor.BLACK;
+            } else {
+                print("Invalid team color.");
+                joinGame();
+                return;
+            }
             serverFacade.sendJoinRequest(currentGames, gameNumber, color, authToken);
             //printChessBoard(currentGames.get(gameNumber - 1).game());
             gameLoop();
@@ -312,6 +324,7 @@ public class Client implements ServerMessageObserver {
             print("Game number?");
             int gameNumber = Integer.parseInt(reader.readLine());
             serverFacade.sendJoinRequest(currentGames, gameNumber, null, authToken);
+            teamColor = null;
             gameLoop();
 //            printChessBoard(currentGames.get(gameNumber - 1).game());
         } catch (ServerError e) {
