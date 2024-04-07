@@ -9,7 +9,6 @@ import model.GameData;
 import model.UserData;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import org.eclipse.jetty.websocket.api.*;
-import spark.Spark;
 import webSocketMessages.serverMessages.Error;
 import webSocketMessages.serverMessages.LoadGame;
 import webSocketMessages.serverMessages.Notification;
@@ -96,7 +95,6 @@ public class WSServer {
             sendError(conn, "Error retrieving information game or user information. " + ex.getMessage());
             return;
         }
-
 
         if (callingUser == null || currentGame == null) {
             sendError(conn, "Unknown user or game");
@@ -209,7 +207,6 @@ public class WSServer {
             return;
         }
 
-
         if (callingUser == null || currentGame == null) {
             sendError(conn, "Unknown user or game");
             return;
@@ -265,7 +262,6 @@ public class WSServer {
             return;
         }
 
-
         // Notify users and send response
         ServerMessage moveNotification = new Notification(callingUser.username() + " has made a move.", ServerMessage.ServerMessageType.NOTIFICATION);
         ServerMessage loadGameMessage = new LoadGame(currentGame.game(), ServerMessage.ServerMessageType.LOAD_GAME);
@@ -299,10 +295,9 @@ public class WSServer {
             // Get game from database
             currentGame = gameDAO.getGame(gameId);
         } catch (DataAccessException ex) {
-            sendError(conn, "Error retrieving information game or user information. " + ex.getMessage());
+            sendError(conn, "Error retrieving information game or user information in leave. " + ex.getMessage());
             return;
         }
-
 
         if (callingUser == null || currentGame == null) {
             sendError(conn, "Unknown user or game");
@@ -360,10 +355,9 @@ public class WSServer {
             // Get game from database
             currentGame = gameDAO.getGame(gameId);
         } catch (DataAccessException ex) {
-            sendError(conn, "Error retrieving information game or user information. " + ex.getMessage());
+            sendError(conn, "Error retrieving information game or user information in resign. " + ex.getMessage());
             return;
         }
-
 
         if (callingUser == null || currentGame == null) {
             sendError(conn, "Unknown user or game");
