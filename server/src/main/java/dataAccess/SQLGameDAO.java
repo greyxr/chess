@@ -3,7 +3,6 @@ package dataAccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -91,8 +90,6 @@ public class SQLGameDAO implements GameDAO {
     public int insertGame(String gameName) throws DataAccessException {
         String statement = "INSERT INTO games (game_id, game_name, white_username, black_username, chess_game) values (?, ?, ?, ?, ?)";
         ChessGame newGame = new ChessGame();
-//        int gameId = getBiggestGameId();
-//        gameId = gameId == -1 ? 0 : gameId;
         newGame.getBoard().resetBoard();
         return executeUpdate(statement, null, gameName, null, null, new Gson().toJson(newGame));
     }
@@ -161,15 +158,6 @@ public class SQLGameDAO implements GameDAO {
 
 
     private void configureDatabase() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException(String.format("Unable to configure database: %s", ex.getMessage()));
-        }
+        DatabaseHelper.setUpDatabase(createStatements);
     }
 }
