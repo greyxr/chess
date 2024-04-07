@@ -51,7 +51,7 @@ public class WSServer {
     }
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String msg) throws Exception {
+    public synchronized void onMessage(Session session, String msg) throws Exception {
         CommandAdapter commandAdapter = new CommandAdapter();
         UserGameCommand command = commandAdapter.fromJson(msg);
 //        session.getRemote().sendString("Command received: " + command.getCommandType());
