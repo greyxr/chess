@@ -92,10 +92,12 @@ public class Client implements ServerMessageObserver {
     void handleInGameInput(String input) throws Exception {
         switch (input) {
             case "1":
+                printInGameMenu();
                 //ws.send(new Gson().toJson(new JoinPlayer(authToken.toString(), 1, ChessGame.TeamColor.WHITE)));
                 break;
             case "2":
                 //ws.send(new Gson().toJson(new JoinObserver(authToken.toString(), 1)));
+                printChessBoard(currentGame);
                 break;
             case "3":
                 makeMove();
