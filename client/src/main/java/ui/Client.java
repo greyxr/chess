@@ -4,7 +4,6 @@ import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import com.google.gson.Gson;
 import exceptions.ClientException;
 import exceptions.ServerError;
 import model.*;
@@ -21,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -172,7 +170,7 @@ public class Client implements ServerMessageObserver {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             try {
                 String input = reader.readLine();
-                if (Objects.equals(input, "6")) {
+                if (Objects.equals(input, "4")) {
                     break;
                 }
                 handleInGameInput(input);
@@ -180,6 +178,10 @@ public class Client implements ServerMessageObserver {
                 print("Caught exception " + e.getMessage());
             }
         }
+    }
+
+    void leave() {
+        return;
     }
 
     ChessPosition parseSquare(String input) throws Exception {
@@ -282,7 +284,7 @@ public class Client implements ServerMessageObserver {
     }
 
     public void error(Error error) {
-        print(error.getNotification());
+        print(error.getErrorMessage());
     }
 
     public void loadGame(LoadGame loadGame) {

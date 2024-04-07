@@ -91,6 +91,8 @@ public class SQLGameDAO implements GameDAO {
     public int insertGame(String gameName) throws DataAccessException {
         String statement = "INSERT INTO games (game_id, game_name, white_username, black_username, chess_game) values (?, ?, ?, ?, ?)";
         ChessGame newGame = new ChessGame();
+//        int gameId = getBiggestGameId();
+//        gameId = gameId == -1 ? 0 : gameId;
         newGame.getBoard().resetBoard();
         return executeUpdate(statement, null, gameName, null, null, new Gson().toJson(newGame));
     }

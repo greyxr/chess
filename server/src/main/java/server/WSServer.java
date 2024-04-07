@@ -1,6 +1,7 @@
 package server;
 
 import chess.ChessGame;
+import chess.ChessPiece;
 import com.google.gson.*;
 import dataAccess.*;
 import model.AuthData;
@@ -53,7 +54,7 @@ public class WSServer {
     public void onMessage(Session session, String msg) throws Exception {
         CommandAdapter commandAdapter = new CommandAdapter();
         UserGameCommand command = commandAdapter.fromJson(msg);
-        session.getRemote().sendString("Command received: " + command.getCommandType());
+//        session.getRemote().sendString("Command received: " + command.getCommandType());
             switch (command.getCommandType()) {
                 case JOIN_PLAYER -> join(session, (JoinPlayer) command);
                 case JOIN_OBSERVER -> observe(session, (JoinObserver) command);
@@ -87,7 +88,14 @@ public class WSServer {
         addGame(gameId);
 
         // Get user info
-        UUID authToken = UUID.fromString(command.getAuthString());
+        UUID authToken = null;
+        try {
+            authToken = UUID.fromString(command.getAuthString());
+        } catch (IllegalArgumentException e) {
+            sendError(conn, "Invalid auth");
+            return;
+        }
+
         AuthData authData;
         UserData callingUser;
         GameData currentGame;
@@ -145,7 +153,13 @@ public class WSServer {
         addGame(gameId);
 
         // Get user info
-        UUID authToken = UUID.fromString(command.getAuthString());
+        UUID authToken = null;
+        try {
+            authToken = UUID.fromString(command.getAuthString());
+        } catch (IllegalArgumentException e) {
+            sendError(conn, "Invalid auth");
+            return;
+        }
         AuthData authData;
         UserData callingUser;
         GameData currentGame;
@@ -219,10 +233,20 @@ public class WSServer {
             sendError(conn, "Unknown player.");
             return;
         }
-//        ChessGame.TeamColor playerColor = Objects.equals(whitePlayer, callingUser.username()) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-//        if (playerColor != currentTurn) {
-//            sendError(conn, "It is not your turn.");
-//        }
+
+        // Verify turn color
+        ChessGame.TeamColor playerColor = Objects.equals(whitePlayer, callingUser.username()) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+        if (playerColor != currentGame.game().getTeamTurn()) {
+            sendError(conn, "It is not your turn.");
+            return;
+        }
+
+        // Make sure the piece is the right color
+        ChessPiece potentialPiece = currentGame.game().getBoard().getPiece(command.getMove().startPosition);
+        if (potentialPiece == null || potentialPiece.getTeamColor() != playerColor) {
+            sendError(conn, "Invalid piece.");
+            return;
+        }
 
         // Make move
         try {
@@ -236,6 +260,7 @@ public class WSServer {
             gameDAO.saveGame(gameId, currentGame.game());
         } catch(DataAccessException ex) {
             sendError(conn, "Unable to save game.");
+            return;
         }
 
 
@@ -252,13 +277,13 @@ public class WSServer {
     }
 
     public void leave(Session conn, Leave command) throws IOException {
-        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-        conn.getRemote().sendString(gson.toJson(serverMessage));
+//        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
+//        conn.getRemote().sendString(gson.toJson(serverMessage));
     }
 
     public void resign(Session conn, Resign command) throws IOException {
-        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-        conn.getRemote().sendString(gson.toJson(serverMessage));
+//        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
+//        conn.getRemote().sendString(gson.toJson(serverMessage));
     }
 
     public void sendError(Session conn, String msg) throws IOException {

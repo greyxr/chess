@@ -3,17 +3,17 @@ package webSocketMessages.userCommands;
 import chess.ChessMove;
 
 public class MakeMove extends UserGameCommand {
-    int gameId;
+    int gameID;
     ChessMove move;
-    public MakeMove(String authToken, int gameId, ChessMove move) {
+    public MakeMove(String authToken, int gameID, ChessMove move) {
         super(authToken);
-        this.gameId = gameId;
+        this.gameID = gameID;
         this.move = move;
         this.commandType = CommandType.MAKE_MOVE;
     }
 
     public int getGameId() {
-        return this.gameId;
+        return this.gameID;
     }
 
     public ChessMove getMove() {
