@@ -41,17 +41,10 @@ public class WSServer {
         }
 
     }
-    public static void main(String[] args) {
-//        Spark.port(8080);
-//        Spark.webSocket("/connect", WSServer.class);
-//        Spark.get("/echo/:msg", (req, res) -> "HTTP response: " + req.params(":msg"));
-    }
-
     @OnWebSocketMessage
     public synchronized void onMessage(Session session, String msg) throws Exception {
         CommandAdapter commandAdapter = new CommandAdapter();
         UserGameCommand command = commandAdapter.fromJson(msg);
-//        session.getRemote().sendString("Command received: " + command.getCommandType());
             switch (command.getCommandType()) {
                 case JOIN_PLAYER -> join(session, (JoinPlayer) command);
                 case JOIN_OBSERVER -> observe(session, (JoinObserver) command);
@@ -78,8 +71,6 @@ public class WSServer {
     }
 
     public synchronized void join(Session conn, JoinPlayer command) throws IOException, DataAccessException {
-//        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-//        conn.getRemote().sendString(gson.toJson(serverMessage));
         // Add game to map
         int gameId = command.getGameId();
         addGame(gameId);
@@ -142,9 +133,6 @@ public class WSServer {
     }
 
     public synchronized void observe(Session conn, JoinObserver command) throws IOException {
-//        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-//        conn.getRemote().sendString(gson.toJson(serverMessage));
-
         // Add game to map
         int gameId = command.getGameId();
         addGame(gameId);
@@ -291,8 +279,6 @@ public class WSServer {
     }
 
     public synchronized void leave(Session conn, Leave command) throws IOException {
-//        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-//        conn.getRemote().sendString(gson.toJson(serverMessage));
         int gameId = command.getGameId();
 
         // Get user info
@@ -354,8 +340,6 @@ public class WSServer {
     }
 
     public void resign(Session conn, Resign command) throws IOException {
-//        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
-//        conn.getRemote().sendString(gson.toJson(serverMessage));
         int gameId = command.getGameId();
 
         // Get user info
