@@ -1,7 +1,6 @@
 package webSocketMessages.userCommands;
 
 import com.google.gson.*;
-
 import java.lang.reflect.Type;
 
 public class CommandAdapter  {
@@ -10,14 +9,14 @@ public class CommandAdapter  {
 
     public CommandAdapter() {
         builder = new GsonBuilder();
-        builder.registerTypeAdapter(UserGameCommand.class, new adapter());
+        builder.registerTypeAdapter(UserGameCommand.class, new Adapter());
         gson = builder.create();
     }
 
     public UserGameCommand fromJson(String json) {
         return gson.fromJson(json, UserGameCommand.class);
     }
-    private static class adapter implements JsonDeserializer<UserGameCommand> {
+    private static class Adapter implements JsonDeserializer<UserGameCommand> {
         @Override
         public UserGameCommand deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException {
             JsonObject jsonObject = jsonElement.getAsJsonObject();

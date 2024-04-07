@@ -7,7 +7,6 @@ import chess.ChessPosition;
 import exceptions.ClientException;
 import exceptions.ServerError;
 import model.*;
-import org.glassfish.grizzly.utils.Pair;
 import server.ServerFacade;
 import server.ServerMessageObserver;
 import server.WSCommunicator;
@@ -16,7 +15,6 @@ import webSocketMessages.serverMessages.LoadGame;
 import webSocketMessages.serverMessages.Notification;
 import webSocketMessages.serverMessages.ServerMessage;
 import webSocketMessages.userCommands.*;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -93,10 +91,8 @@ public class Client implements ServerMessageObserver {
         switch (input) {
             case "1":
                 printInGameMenu();
-                //ws.send(new Gson().toJson(new JoinPlayer(authToken.toString(), 1, ChessGame.TeamColor.WHITE)));
                 break;
             case "2":
-                //ws.send(new Gson().toJson(new JoinObserver(authToken.toString(), 1)));
                 printChessBoard(null);
                 break;
             case "3":
@@ -104,11 +100,9 @@ public class Client implements ServerMessageObserver {
                 break;
             case "4":
                 ws.send(new Leave(authToken.toString(), currentGameId));
-                //ws.send(new Gson().toJson(new Leave("12345", 5)));
                 break;
             case "5":
                 ws.send(new Resign(authToken.toString(), currentGameId));
-                //ws.send(new Gson().toJson(new Resign("12345", 5)));
                 break;
             case "6":
                 highlightValidMoves();
@@ -156,9 +150,6 @@ public class Client implements ServerMessageObserver {
                 break;
             case "2":
                 login();
-                break;
-            case "7":
-                test();
                 break;
             case "3":
             case "q":
@@ -301,7 +292,6 @@ public class Client implements ServerMessageObserver {
     }
 
     public void notify(ServerMessage message) {
-//        print("Received " + message.getServerMessageType());
         switch(message.getServerMessageType()) {
             case NOTIFICATION -> notification((Notification) message);
             case ERROR -> error((Error) message);
@@ -320,15 +310,6 @@ public class Client implements ServerMessageObserver {
     public void loadGame(LoadGame loadGame) {
         this.currentGame = loadGame.getGame();
         printChessBoard(null);
-    }
-
-    void test() {
-        print("Testing websocket client connection");
-//        try {
-//            serverFacade.sendWebSocketConnect();
-//        } catch (Exception e) {
-//            print("Exception: " + e.getMessage());
-//        }
     }
 
     void help() {
@@ -468,7 +449,6 @@ public class Client implements ServerMessageObserver {
             teamColor = null;
             sendObserve(currentGames.get(gameNumber - 1).gameID());
             gameLoop();
-//            printChessBoard(currentGames.get(gameNumber - 1).game());
         } catch (ServerError e) {
             print(e.message());
         } catch (IOException e) {

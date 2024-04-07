@@ -1,14 +1,10 @@
 package ui;
 
 import chess.ChessGame;
-import chess.ChessMove;
 import chess.ChessPosition;
-
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Random;
-
 import static ui.EscapeSequences.*;
 
 public class ChessBoard {
@@ -146,11 +142,6 @@ public class ChessBoard {
         out.print(" ");
         out.print(input != null ? input : " ");
         out.print(" ");
-    }
-
-    private static void setWhite(PrintStream out) {
-        out.print(SET_BG_COLOR_WHITE);
-        out.print(SET_TEXT_COLOR_WHITE);
     }
 
     private static void setBlack(PrintStream out) {

@@ -1,12 +1,7 @@
 package server;
 
-import chess.ChessGame;
-import com.google.gson.Gson;
 import exceptions.ServerError;
 import model.*;
-import webSocketMessages.userCommands.JoinPlayer;
-import webSocketMessages.userCommands.UserGameCommand;
-
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -17,14 +12,6 @@ public class ServerFacade {
         String url = "localhost:" + port;
         ServerFacade.url = url;
         serverCalls = new ServerCalls("http://localhost:" + port);
-//        try {
-//            System.out.println("Setting up websocket...");
-//            ws = new WSClient();
-//        } catch (Exception e) {
-//            System.out.println("Exception found: " + e);
-//            throw new RuntimeException(e);
-//        }
-
     }
 
     public void clear() throws ServerError {

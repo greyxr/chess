@@ -15,11 +15,8 @@ import webSocketMessages.serverMessages.LoadGame;
 import webSocketMessages.serverMessages.Notification;
 import webSocketMessages.serverMessages.ServerMessage;
 import webSocketMessages.userCommands.*;
-
 import java.io.IOException;
 import java.util.*;
-
-import static webSocketMessages.userCommands.UserGameCommand.CommandType.*;
 
 @WebSocket
 public class WSServer {

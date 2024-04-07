@@ -1,8 +1,6 @@
 package webSocketMessages.serverMessages;
 
 import com.google.gson.*;
-import webSocketMessages.userCommands.*;
-
 import java.lang.reflect.Type;
 
 public class MessageAdapter {
@@ -11,14 +9,14 @@ public class MessageAdapter {
 
     public MessageAdapter() {
         builder = new GsonBuilder();
-        builder.registerTypeAdapter(ServerMessage.class, new adapter());
+        builder.registerTypeAdapter(ServerMessage.class, new Adapter());
         gson = builder.create();
     }
 
     public ServerMessage fromJson(String json) {
         return gson.fromJson(json, ServerMessage.class);
     }
-    private static class adapter implements JsonDeserializer<ServerMessage> {
+    private static class Adapter implements JsonDeserializer<ServerMessage> {
         @Override
         public ServerMessage deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException {
             JsonObject jsonObject = jsonElement.getAsJsonObject();

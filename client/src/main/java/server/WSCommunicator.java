@@ -4,24 +4,12 @@ import com.google.gson.Gson;
 import ui.Client;
 import webSocketMessages.serverMessages.Error;
 import webSocketMessages.serverMessages.MessageAdapter;
-import webSocketMessages.serverMessages.Notification;
 import webSocketMessages.serverMessages.ServerMessage;
 import webSocketMessages.userCommands.UserGameCommand;
-
 import javax.websocket.*;
 import java.net.URI;
 
 public class WSCommunicator extends Endpoint {
-
-    public static void main(String[] args) throws Exception {
-//        var ws = new WSClient();
-//        Scanner scanner = new Scanner(System.in);
-//
-//        System.out.println("Enter a message you want to echo");
-//        while (true) {
-//            ws.send(scanner.nextLine());
-//        }
-    }
 
     public Session session;
 
@@ -42,6 +30,7 @@ public class WSCommunicator extends Endpoint {
             this.session = container.connectToServer(this, uri);
             System.out.println("Websocket set up.");
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
                 public void onMessage(String message) {
                     MessageAdapter messageAdapter = new MessageAdapter();
                     ServerMessage serverMessage = messageAdapter.fromJson(message);
@@ -53,7 +42,7 @@ public class WSCommunicator extends Endpoint {
         }
     }
 
-    public void send(UserGameCommand command) throws Exception {
+    public void send(UserGameCommand command) {
         try {
             if (this.session == null) {
                 setup();
@@ -66,6 +55,7 @@ public class WSCommunicator extends Endpoint {
         }
     }
 
+    @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
         System.out.println("Websocket opened.");
     }
