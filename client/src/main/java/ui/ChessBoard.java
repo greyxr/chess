@@ -1,9 +1,12 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Random;
 
 import static ui.EscapeSequences.*;
@@ -15,12 +18,23 @@ public class ChessBoard {
     private static final String[] reverseLetterBorder = new String[]{null, "h", "g", "f", "e", "d", "c", "b", "a", null};
     private static final String[] numberBorder = new String[]{null, "1", "2", "3", "4", "5", "6", "7", "8", null};
 
+    private static boolean highlight;
 
-    public static void main(String [][] whitePieces, String[][] blackPieces, ChessGame.TeamColor teamColor) {
+    private static ArrayList<ChessPosition> validPositions;
+
+
+    public static void main(String [][] whitePieces, String[][] blackPieces, ChessGame.TeamColor teamColor, ArrayList<ChessPosition> potentialPositions) {
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         out.print(ERASE_SCREEN);
         out.print(SET_TEXT_BOLD);
+
+        highlight = false;
+
+        if (potentialPositions != null) {
+            highlight = true;
+            validPositions = potentialPositions;
+        }
 
         drawChessBoard(out, whitePieces, blackPieces, teamColor);
     }
@@ -41,7 +55,7 @@ public class ChessBoard {
                 if (j == 0) {
                     printGraySquare(out, numberBorder[i + 1]);
                 }
-                printBoardSquare(out, whitePieces[i][j], blackPieces[i][j], white);
+                printBoardSquare(out, whitePieces[i][j], blackPieces[i][j], white, i, j);
                 white = !white;
                 if (j == BOARD_SIZE_IN_SQUARES - 1) {
                     white = !white;
@@ -65,7 +79,7 @@ public class ChessBoard {
                 if (j == BOARD_SIZE_IN_SQUARES - 1) {
                     printGraySquare(out, numberBorder[i + 1]);
                 }
-                printBoardSquare(out, whitePieces[i][j], blackPieces[i][j], white);
+                printBoardSquare(out, whitePieces[i][j], blackPieces[i][j], white, i, j);
                 white = !white;
                 if (j == 0) {
                     white = !white;
@@ -95,12 +109,24 @@ public class ChessBoard {
         out.println();
     }
 
-    private static void printBoardSquare(PrintStream out, String white, String black, boolean isWhite) {
+    private static void printBoardSquare(PrintStream out, String white, String black, boolean isWhite, int row, int col) {
         if (isWhite) {
             out.print(SET_BG_COLOR_WHITE);
         } else {
             out.print(SET_BG_COLOR_RED);
         }
+
+        if (highlight) {
+            ChessPosition potentialPosition = new ChessPosition(row + 1, col + 1);
+            if (validPositions.contains(potentialPosition)) {
+                if (isWhite) {
+                    out.print(SET_BG_COLOR_GREEN);
+                } else {
+                    out.print(SET_BG_COLOR_DARK_GREEN);
+                }
+            }
+        }
+
         out.print(" ");
         if (white != null) {
             out.print(SET_TEXT_COLOR_BLUE);

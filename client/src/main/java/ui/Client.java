@@ -7,6 +7,7 @@ import chess.ChessPosition;
 import exceptions.ClientException;
 import exceptions.ServerError;
 import model.*;
+import org.glassfish.grizzly.utils.Pair;
 import server.ServerFacade;
 import server.ServerMessageObserver;
 import server.WSCommunicator;
@@ -20,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -95,7 +97,7 @@ public class Client implements ServerMessageObserver {
                 break;
             case "2":
                 //ws.send(new Gson().toJson(new JoinObserver(authToken.toString(), 1)));
-                printChessBoard(currentGame);
+                printChessBoard(null);
                 break;
             case "3":
                 makeMove();
@@ -108,6 +110,8 @@ public class Client implements ServerMessageObserver {
                 ws.send(new Resign(authToken.toString(), currentGameId));
                 //ws.send(new Gson().toJson(new Resign("12345", 5)));
                 break;
+            case "6":
+                highlightValidMoves();
         }
     }
 
@@ -182,8 +186,32 @@ public class Client implements ServerMessageObserver {
         }
     }
 
-    void leave() {
-        return;
+    void highlightValidMoves() throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        print("Which square?");
+        String input = reader.readLine();
+        ChessPosition chessPosition = null;
+        try {
+            chessPosition = parseSquare(input);
+        } catch (Exception ex) {
+            print("Error: " + ex.getMessage());
+            return;
+        }
+
+        ChessPiece potentialPiece = currentGame.getBoard().getPiece(chessPosition);
+        if (potentialPiece == null) {
+            print("Invalid piece.");
+            return;
+        }
+
+        Collection<ChessMove> validMoves = currentGame.validMoves(chessPosition);
+        ArrayList<ChessPosition> validPositions = new ArrayList<>();
+        for (ChessMove move: validMoves) {
+            validPositions.add(move.getEndPosition());
+        }
+
+        printChessBoard(validPositions);
+
     }
 
     ChessPosition parseSquare(String input) throws Exception {
@@ -290,8 +318,8 @@ public class Client implements ServerMessageObserver {
     }
 
     public void loadGame(LoadGame loadGame) {
-        printChessBoard(loadGame.getGame());
         this.currentGame = loadGame.getGame();
+        printChessBoard(null);
     }
 
     void test() {
@@ -311,8 +339,8 @@ public class Client implements ServerMessageObserver {
         System.out.println(input);
     }
 
-    void printChessBoard(ChessGame chessGame) {
-        ChessBoard.main(chessGame.convertToMatrix("white"), chessGame.convertToMatrix("black"), teamColor);
+    void printChessBoard(ArrayList<ChessPosition> validPositions) {
+        ChessBoard.main(currentGame.convertToMatrix("white"), currentGame.convertToMatrix("black"), teamColor, validPositions);
     }
 
     void register() {
