@@ -63,4 +63,9 @@ public class MemoryGameDAO implements GameDAO {
         }
         return biggestGame.gameID();
     }
+
+    @Override
+    public int saveGame(int gameId, ChessGame game) throws DataAccessException {
+        return 0;
+    }
 }

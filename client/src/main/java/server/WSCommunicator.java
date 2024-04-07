@@ -1,8 +1,12 @@
 package server;
 
+import com.google.gson.Gson;
 import ui.Client;
+import webSocketMessages.serverMessages.Error;
 import webSocketMessages.serverMessages.MessageAdapter;
+import webSocketMessages.serverMessages.Notification;
 import webSocketMessages.serverMessages.ServerMessage;
+import webSocketMessages.userCommands.UserGameCommand;
 
 import javax.websocket.*;
 import java.net.URI;
@@ -23,10 +27,12 @@ public class WSCommunicator extends Endpoint {
 
     Client client;
     int port;
+    Gson gson;
 
     public WSCommunicator(Client client, int port) {
         this.client = client;
         this.port = port;
+        gson = new Gson();
     }
 
     public void setup() {
@@ -47,11 +53,17 @@ public class WSCommunicator extends Endpoint {
         }
     }
 
-    public void send(String msg) throws Exception {
-        if (this.session == null) {
-            setup();
+    public void send(UserGameCommand command) throws Exception {
+        try {
+            if (this.session == null) {
+                setup();
+            }
+
+            String msg = gson.toJson(command);
+            this.session.getBasicRemote().sendText(msg);
+        } catch (Exception ex) {
+            client.notify(new Error("Error: " + ex.getMessage(), ServerMessage.ServerMessageType.ERROR));
         }
-        this.session.getBasicRemote().sendText(msg);
     }
 
     public void onOpen(Session session, EndpointConfig endpointConfig) {

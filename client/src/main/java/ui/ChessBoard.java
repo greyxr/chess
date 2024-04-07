@@ -37,13 +37,13 @@ public class ChessBoard {
         printBorder(out, letterBorder);
         boolean white = true;
         for (int i = BOARD_SIZE_IN_SQUARES - 1; i >= 0; i--) {
-            for (int j = BOARD_SIZE_IN_SQUARES - 1; j >= 0; j--) {
-                if (j == BOARD_SIZE_IN_SQUARES - 1) {
+            for (int j = 0; j < BOARD_SIZE_IN_SQUARES; j++) {
+                if (j == 0) {
                     printGraySquare(out, numberBorder[i + 1]);
                 }
                 printBoardSquare(out, whitePieces[i][j], blackPieces[i][j], white);
                 white = !white;
-                if (j == 0) {
+                if (j == BOARD_SIZE_IN_SQUARES - 1) {
                     white = !white;
                     printGraySquare(out, numberBorder[i + 1]);
                     resetAll(out);
@@ -61,13 +61,13 @@ public class ChessBoard {
         printBorder(out, reverseLetterBorder);
         boolean white = true;
         for (int i = 0; i < BOARD_SIZE_IN_SQUARES; i++) {
-            for (int j = 0; j < BOARD_SIZE_IN_SQUARES; j++) {
-                if (j == 0) {
+            for (int j = BOARD_SIZE_IN_SQUARES - 1; j >= 0; j--) {
+                if (j == BOARD_SIZE_IN_SQUARES - 1) {
                     printGraySquare(out, numberBorder[i + 1]);
                 }
                 printBoardSquare(out, whitePieces[i][j], blackPieces[i][j], white);
                 white = !white;
-                if (j == BOARD_SIZE_IN_SQUARES - 1) {
+                if (j == 0) {
                     white = !white;
                     printGraySquare(out, numberBorder[i + 1]);
                     resetAll(out);

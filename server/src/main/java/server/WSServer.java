@@ -243,11 +243,11 @@ public class WSServer {
         ServerMessage moveNotification = new Notification(callingUser.username() + " has made a move.", ServerMessage.ServerMessageType.NOTIFICATION);
         ServerMessage loadGameMessage = new LoadGame(currentGame.game(), ServerMessage.ServerMessageType.LOAD_GAME);
         for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
-            send(entry.getValue(), loadGameMessage);
             if (entry.getValue() != conn) {
                 System.out.println("Connection found");
                 send(entry.getValue(), moveNotification);
             }
+            send(entry.getValue(), loadGameMessage);
         }
     }
 

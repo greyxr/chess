@@ -98,7 +98,7 @@ public class SQLGameDAO implements GameDAO {
     @Override
     public int saveGame(int gameId, ChessGame game) throws DataAccessException {
         String sql = "UPDATE games SET chess_game = ? WHERE game_id = ?";
-        return executeUpdate(sql, game, gameId);
+        return executeUpdate(sql, new Gson().toJson(game), gameId);
     }
 
     @Override

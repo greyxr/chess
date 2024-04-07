@@ -2,6 +2,7 @@ package service;
 
 import dataAccess.*;
 import exceptions.BadRequestException;
+import model.AuthData;
 import model.GameData;
 import model.JoinGameRequest;
 
@@ -33,15 +34,17 @@ public class GameService {
         if (joinGameRequest.playerColor() == null) {
             return;
         }
+        AuthDAO authDAO = new SQLAuthDAO();
+        AuthData currentUser = authDAO.getAuth(authtoken);
         switch (joinGameRequest.playerColor().toLowerCase()) {
             case "white":
-                if (requestedGame.whiteUsername() != null) {
+                if (requestedGame.whiteUsername() != null && !requestedGame.whiteUsername().equals(currentUser.username())) {
                     throw new BadRequestException(403, "Error: already taken");
                 }
                 dao.insertUser(joinGameRequest.gameID(), new SQLAuthDAO().getAuth(authtoken).username(), "WHITE");
                 break;
             case "black":
-                if (requestedGame.blackUsername() != null) {
+                if (requestedGame.blackUsername() != null && !requestedGame.blackUsername().equals(currentUser.username())) {
                     throw new BadRequestException(403, "Error: already taken");
                 }
                 dao.insertUser(joinGameRequest.gameID(), new SQLAuthDAO().getAuth(authtoken).username(), "BLACK");
