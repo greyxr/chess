@@ -101,9 +101,11 @@ public class Client implements ServerMessageObserver {
                 makeMove();
                 break;
             case "4":
+                ws.send(new Leave(authToken.toString(), currentGameId));
                 //ws.send(new Gson().toJson(new Leave("12345", 5)));
                 break;
             case "5":
+                ws.send(new Resign(authToken.toString(), currentGameId));
                 //ws.send(new Gson().toJson(new Resign("12345", 5)));
                 break;
         }

@@ -12,11 +12,14 @@ public class ChessGame {
     public TeamColor teamColor;
     public ChessBoard board;
 
+    public GameState state;
+
     public Deque<ChessMove> moveHistory = new ArrayDeque<>();
 
     public ChessGame() {
         this.teamColor = TeamColor.WHITE;
         this.board = new ChessBoard();
+        this.state = GameState.IN_PROGRESS;
     }
 
     /**
@@ -41,6 +44,12 @@ public class ChessGame {
     public enum TeamColor {
         WHITE,
         BLACK
+    }
+
+    public enum GameState {
+        IN_PROGRESS,
+        BLACK_WIN,
+        WHITE_WIN
     }
 
     @Override

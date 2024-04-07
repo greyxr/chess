@@ -80,7 +80,7 @@ public class WSServer {
         return null;
     }
 
-    public void join(Session conn, JoinPlayer command) throws IOException, DataAccessException {
+    public synchronized void join(Session conn, JoinPlayer command) throws IOException, DataAccessException {
 //        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
 //        conn.getRemote().sendString(gson.toJson(serverMessage));
         // Add game to map
@@ -144,7 +144,7 @@ public class WSServer {
         send(conn, loadGame);
     }
 
-    public void observe(Session conn, JoinObserver command) throws IOException {
+    public synchronized void observe(Session conn, JoinObserver command) throws IOException {
 //        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
 //        conn.getRemote().sendString(gson.toJson(serverMessage));
 
@@ -182,21 +182,25 @@ public class WSServer {
         // Verify and add user to gameId map
         (gameSessions.get(gameId)).put(command.getAuthString(), conn);
 
+        ArrayList<Session> notificationArray = new ArrayList<>();
         // Notify users
         ServerMessage serverMessage = new Notification(callingUser.username() + " has joined game " + gameId + " as an observer.", ServerMessage.ServerMessageType.NOTIFICATION);
         for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
             if (entry.getValue() != conn) {
                 System.out.println("Connection found");
-                send(entry.getValue(), serverMessage);
+                notificationArray.add(entry.getValue());
             }
         }
 
         // Send response
+        for (Session session : notificationArray) {
+            send(session, serverMessage);
+        }
         ServerMessage loadGame = new LoadGame(currentGame.game(), ServerMessage.ServerMessageType.LOAD_GAME);
         send(conn, loadGame);
     }
 
-    public void move(Session conn, MakeMove command) throws IOException {
+    public synchronized void move(Session conn, MakeMove command) throws IOException {
         // Get game from map
         int gameId = command.getGameId();
         String authTokenString = getAuthToken(gameId, conn);
@@ -223,6 +227,12 @@ public class WSServer {
 
         if (callingUser == null || currentGame == null) {
             sendError(conn, "Unknown user or game");
+            return;
+        }
+
+        // Check if game is over
+        if (currentGame.game().state == ChessGame.GameState.BLACK_WIN || currentGame.game().state == ChessGame.GameState.WHITE_WIN) {
+            sendError(conn, "Game is over.");
             return;
         }
 
@@ -256,6 +266,13 @@ public class WSServer {
             return;
         }
 
+        // Check for checkmate
+        if (currentGame.game().isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            currentGame.game().state = ChessGame.GameState.BLACK_WIN;
+        } else if (currentGame.game().isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            currentGame.game().state = ChessGame.GameState.WHITE_WIN;
+        }
+
         try {
             gameDAO.saveGame(gameId, currentGame.game());
         } catch(DataAccessException ex) {
@@ -276,14 +293,139 @@ public class WSServer {
         }
     }
 
-    public void leave(Session conn, Leave command) throws IOException {
+    public synchronized void leave(Session conn, Leave command) throws IOException {
 //        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
 //        conn.getRemote().sendString(gson.toJson(serverMessage));
+        int gameId = command.getGameId();
+
+        // Get user info
+        UUID authToken = null;
+        try {
+            authToken = UUID.fromString(command.getAuthString());
+        } catch (IllegalArgumentException e) {
+            sendError(conn, "Invalid auth");
+            return;
+        }
+
+        AuthData authData;
+        UserData callingUser;
+        GameData currentGame;
+        try {
+            authData = authDAO.getAuth(authToken);
+            callingUser = userDAO.getUser(authData.username());
+            // Get game from database
+            currentGame = gameDAO.getGame(gameId);
+        } catch (DataAccessException ex) {
+            sendError(conn, "Error retrieving information game or user information. " + ex.getMessage());
+            return;
+        }
+
+
+        if (callingUser == null || currentGame == null) {
+            sendError(conn, "Unknown user or game");
+            return;
+        }
+
+        // Verify user is in game
+        String color = null;
+        if (currentGame.whiteUsername() != null && currentGame.whiteUsername().equalsIgnoreCase(callingUser.username())) {
+            color = "white";
+        } else if (currentGame.blackUsername() != null && currentGame.blackUsername().equalsIgnoreCase(callingUser.username())) {
+            color = "black";
+        }
+
+        if (color != null) {
+            // Remove user from game
+            try {
+                gameDAO.insertUser(gameId, null, color);
+            } catch (DataAccessException ex) {
+                sendError(conn, "Couldn't update user.");
+            }
+        }
+
+        // Notify users
+        ServerMessage serverMessage = new Notification(callingUser.username() + " has left", ServerMessage.ServerMessageType.NOTIFICATION);
+        for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
+            if (entry.getValue() != conn) {
+                System.out.println("Connection found");
+                send(entry.getValue(), serverMessage);
+            }
+        }
+
+        // Remove connection
+        removeConnection(conn);
     }
 
     public void resign(Session conn, Resign command) throws IOException {
 //        Notification serverMessage = new Notification("Command received: " + command.getCommandType(), ServerMessage.ServerMessageType.NOTIFICATION);
 //        conn.getRemote().sendString(gson.toJson(serverMessage));
+        int gameId = command.getGameId();
+
+        // Get user info
+        UUID authToken = null;
+        try {
+            authToken = UUID.fromString(command.getAuthString());
+        } catch (IllegalArgumentException e) {
+            sendError(conn, "Invalid auth");
+            return;
+        }
+
+        AuthData authData;
+        UserData callingUser;
+        GameData currentGame;
+        try {
+            authData = authDAO.getAuth(authToken);
+            callingUser = userDAO.getUser(authData.username());
+            // Get game from database
+            currentGame = gameDAO.getGame(gameId);
+        } catch (DataAccessException ex) {
+            sendError(conn, "Error retrieving information game or user information. " + ex.getMessage());
+            return;
+        }
+
+
+        if (callingUser == null || currentGame == null) {
+            sendError(conn, "Unknown user or game");
+            return;
+        }
+
+        // Verify game isn't over
+        if (currentGame.game().state == ChessGame.GameState.BLACK_WIN || currentGame.game().state == ChessGame.GameState.WHITE_WIN) {
+            sendError(conn, "Can't resign game that has ended.");
+            return;
+        }
+
+        // Verify user is in game
+        String color = null;
+        if (currentGame.whiteUsername() != null && currentGame.whiteUsername().equalsIgnoreCase(callingUser.username())) {
+            color = "white";
+        } else if (currentGame.blackUsername() != null && currentGame.blackUsername().equalsIgnoreCase(callingUser.username())) {
+            color = "black";
+        }
+
+        if (color == null) {
+            sendError(conn, "Unknown user");
+            return;
+        }
+
+        // Resign game
+        currentGame.game().state = (color.equals("white")) ? ChessGame.GameState.BLACK_WIN : ChessGame.GameState.WHITE_WIN;
+        try {
+            gameDAO.saveGame(gameId, currentGame.game());
+        } catch (DataAccessException ex) {
+            sendError(conn, "Unable to save game.");
+            return;
+        }
+
+        // Notify users
+        ServerMessage serverMessage = new Notification(color + " has resigned", ServerMessage.ServerMessageType.NOTIFICATION);
+        for (Map.Entry<String, Session> entry : (gameSessions.get(gameId)).entrySet()) {
+            System.out.println("Connection found");
+            send(entry.getValue(), serverMessage);
+        }
+
+        // Remove connection
+        removeConnection(conn);
     }
 
     public void sendError(Session conn, String msg) throws IOException {
@@ -296,15 +438,7 @@ public class WSServer {
         conn.getRemote().sendString(json);
     }
 
-    @OnWebSocketError
-    public void onError(Throwable throwable) {
-        System.out.println("Websocket error!");
-        System.out.println(throwable.toString());
-    }
-
-    @OnWebSocketClose
-    public void onClose(Session session, int var2, String var3) {
-        System.out.println("On close. var2: " + var2 + " var3: " + var3);
+    public void removeConnection(Session session) {
         // Iterate over the entries of the outer map
         for (Map.Entry<Integer, Map<String, Session>> outerEntry : gameSessions.entrySet()) {
             // Get the inner map associated with the current key
@@ -322,6 +456,17 @@ public class WSServer {
                 }
             }
         }
+    }
+
+    @OnWebSocketError
+    public void onError(Throwable throwable) {
+        System.out.println("Websocket error!");
+        System.out.println(throwable.toString());
+    }
+
+    @OnWebSocketClose
+    public void onClose(Session session, int var2, String var3) {
+        removeConnection(session);
     }
 
 }
