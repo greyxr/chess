@@ -167,10 +167,10 @@ public class Client implements ServerMessageObserver {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             try {
                 String input = reader.readLine();
+                handleInGameInput(input);
                 if (Objects.equals(input, "4")) {
                     break;
                 }
-                handleInGameInput(input);
             } catch (Exception e) {
                 print("Caught exception " + e.getMessage());
             }
